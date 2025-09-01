@@ -1,6 +1,11 @@
-import { Calendar, ExternalLink, Heart } from "lucide-react"
+import { useState } from "react"
+import { Calendar, ExternalLink, Heart, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Link } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 
 interface Tool {
   id: string
@@ -19,8 +24,60 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool, onUpvote }: ToolCardProps) {
-  const handleUpvote = () => {
-    onUpvote?.(tool.id)
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const [isUpvoted, setIsUpvoted] = useState(tool.isUpvoted || false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleUpvote = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to upvote tools.",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    
+    try {
+      if (isUpvoted) {
+        // Remove upvote
+        const { error } = await supabase
+          .from('upvotes')
+          .delete()
+          .eq('tool_id', parseInt(tool.id))
+          .eq('user_id', user.id)
+          
+        if (error) throw error
+        setIsUpvoted(false)
+      } else {
+        // Add upvote
+        const { error } = await supabase
+          .from('upvotes')
+          .insert({
+            tool_id: parseInt(tool.id),
+            user_id: user.id
+          })
+          
+        if (error) throw error
+        setIsUpvoted(true)
+      }
+      
+      onUpvote?.(tool.id)
+    } catch (error) {
+      console.error('Error toggling upvote:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update upvote. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -51,15 +108,10 @@ export function ToolCard({ tool, onUpvote }: ToolCardProps) {
               <div className="flex items-center space-x-2 text-sm text-glass-foreground/60">
                 <Calendar className="w-3 h-3" />
                 <span>{new Date(tool.launchDate).toLocaleDateString()}</span>
-                {tool.isPaid ? (
-                  <span className="px-2 py-1 bg-secondary/20 text-secondary text-xs rounded-full">
-                    Paid
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 bg-accent/20 text-accent text-xs rounded-full">
-                    Free
-                  </span>
-                )}
+                <Badge variant={tool.isPaid ? "secondary" : "outline"} className="text-xs">
+                  <Tag className="w-3 h-3 mr-1" />
+                  {tool.isPaid ? "Paid" : "Free"}
+                </Badge>
               </div>
             </div>
           </div>
@@ -68,9 +120,14 @@ export function ToolCard({ tool, onUpvote }: ToolCardProps) {
             variant="ghost"
             size="icon"
             onClick={handleUpvote}
-            className={`rounded-xl ${tool.isUpvoted ? 'text-primary bg-primary/10' : 'text-glass-foreground/60'}`}
+            disabled={isLoading}
+            className={`rounded-xl transition-all duration-200 ${
+              isUpvoted 
+                ? 'text-red-500 bg-red-50/10 hover:text-red-600 hover:bg-red-50/20' 
+                : 'text-glass-foreground/60 hover:text-red-500 hover:bg-red-50/10'
+            }`}
           >
-            <Heart className={`w-5 h-5 ${tool.isUpvoted ? 'fill-current' : ''}`} />
+            <Heart className={`w-5 h-5 transition-all duration-200 ${isUpvoted ? 'fill-current' : ''}`} />
           </Button>
         </div>
 

@@ -1,12 +1,20 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Upload, Globe, Calendar, DollarSign, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { useAuth } from "@/hooks/useAuth"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 
 export function Submit() {
+  const { user, loading } = useAuth()
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -15,18 +23,125 @@ export function Submit() {
     isPaid: false,
     logo: null as File | null,
   })
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!loading && !user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to submit a tool.",
+      })
+      navigate('/')
+    }
+  }, [user, loading, navigate, toast])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Submit tool:", formData)
-    // TODO: Implement tool submission with Supabase
+    if (!user) return
+    
+    setSubmitting(true)
+
+    try {
+      let logoUrl = null
+      
+      // Upload logo if provided
+      if (formData.logo) {
+        const fileExt = formData.logo.name.split('.').pop()
+        const fileName = `${Date.now()}.${fileExt}`
+        
+        const { error: uploadError } = await supabase.storage
+          .from('logos')
+          .upload(fileName, formData.logo)
+          
+        if (uploadError) throw uploadError
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('logos')
+          .getPublicUrl(fileName)
+          
+        logoUrl = publicUrl
+      }
+
+      // Insert tool record
+      const { error: insertError } = await supabase
+        .from('tools')
+        .insert({
+          title: formData.name,
+          description: formData.description,
+          url: formData.websiteUrl,
+          launch_date: formData.launchDate,
+          is_paid: formData.isPaid,
+          logo_url: logoUrl,
+          user_id: user.id
+        })
+
+      if (insertError) throw insertError
+
+      toast({
+        title: "Tool submitted successfully!",
+        description: "Your tool has been added to LaunchLeap.",
+      })
+
+      // Reset form
+      setFormData({
+        name: "",
+        description: "",
+        websiteUrl: "",
+        launchDate: "",
+        isPaid: false,
+        logo: null,
+      })
+      
+      navigate('/discover')
+    } catch (error) {
+      console.error('Error submitting tool:', error)
+      toast({
+        title: "Error",
+        description: "Failed to submit tool. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file.",
+          variant: "destructive"
+        })
+        return
+      }
+      
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select an image smaller than 5MB.",
+          variant: "destructive"
+        })
+        return
+      }
+      
       setFormData(prev => ({ ...prev, logo: file }))
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
   }
 
   return (
@@ -137,7 +252,7 @@ export function Submit() {
                     <p className="text-glass-foreground/80">
                       {formData.logo ? formData.logo.name : "Click to upload logo"}
                     </p>
-                    <p className="text-sm text-glass-foreground/60">PNG, JPG up to 2MB</p>
+                    <p className="text-sm text-glass-foreground/60">PNG, JPG up to 5MB</p>
                   </div>
                 </Label>
               </div>
@@ -165,9 +280,14 @@ export function Submit() {
                 variant="hero" 
                 size="hero" 
                 className="w-full"
+                disabled={submitting}
               >
-                <Sparkles className="w-6 h-6 mr-2" />
-                Launch Your Tool
+                {submitting ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-current mr-2"></div>
+                ) : (
+                  <Sparkles className="w-6 h-6 mr-2" />
+                )}
+                {submitting ? 'Submitting...' : 'Launch Your Tool'}
               </Button>
               
               <p className="text-center text-sm text-glass-foreground/60 mt-4">
@@ -183,7 +303,7 @@ export function Submit() {
           <ul className="text-sm text-glass-foreground/70 space-y-1">
             <li>• Your tool should be live and accessible</li>
             <li>• Provide a clear, descriptive name and description</li>
-            <li>• Logo should be high-quality (PNG/JPG, max 2MB)</li>
+            <li>• Logo should be high-quality (PNG/JPG, max 5MB)</li>
             <li>• All submissions are reviewed before going live</li>
           </ul>
         </div>

@@ -1,6 +1,7 @@
 import { ArrowRight, Sparkles, TrendingUp, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ToolCard } from "@/components/ToolCard"
+import { Link } from "react-router-dom"
 import heroImage from "@/assets/hero-cosmic.jpg"
 
 // Mock data - replace with actual data from Supabase
@@ -80,14 +81,18 @@ export function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <Button variant="hero" size="hero" className="min-w-[200px]">
-                <Zap className="w-6 h-6 mr-2" />
-                Explore Tools
-                <ArrowRight className="w-6 h-6 ml-2" />
+              <Button variant="hero" size="hero" className="min-w-[200px]" asChild>
+                <Link to="/discover">
+                  <Zap className="w-6 h-6 mr-2" />
+                  Explore Tools
+                  <ArrowRight className="w-6 h-6 ml-2" />
+                </Link>
               </Button>
               
-              <Button variant="glass" size="lg" className="min-w-[200px]">
-                Submit Your Tool
+              <Button variant="glass" size="lg" className="min-w-[200px]" asChild>
+                <Link to="/submit">
+                  Submit Your Tool
+                </Link>
               </Button>
             </div>
           </div>
@@ -124,9 +129,11 @@ export function Home() {
           </div>
           
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg">
-              View All Tools
-              <ArrowRight className="w-5 h-5 ml-2" />
+            <Button variant="outline" size="lg" asChild>
+              <Link to="/discover">
+                View All Tools
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
             </Button>
           </div>
         </div>

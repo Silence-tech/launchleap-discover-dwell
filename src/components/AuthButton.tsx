@@ -1,26 +1,41 @@
 import { Button } from "@/components/ui/button"
 import { LogIn, LogOut, User } from "lucide-react"
-
-// Mock auth state - replace with actual Supabase auth
-const mockUser = null // Set to user object when authenticated
+import { useAuth } from "@/hooks/useAuth"
 
 export function AuthButton() {
-  const handleSignIn = () => {
-    console.log("Sign in with Google")
-    // TODO: Implement Google OAuth with Supabase
+  const { user, profile, loading, signInWithGoogle, signOut } = useAuth()
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle()
+    } catch (error) {
+      console.error('Error signing in:', error)
+    }
   }
 
-  const handleSignOut = () => {
-    console.log("Sign out")
-    // TODO: Implement sign out with Supabase
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
 
-  if (mockUser) {
+  if (loading) {
+    return (
+      <div className="animate-pulse flex items-center space-x-3">
+        <div className="h-4 w-4 bg-glass/40 rounded"></div>
+        <div className="h-4 w-20 bg-glass/40 rounded"></div>
+      </div>
+    )
+  }
+
+  if (user) {
     return (
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2 text-glass-foreground/80">
           <User className="w-4 h-4" />
-          <span className="text-sm">user@example.com</span>
+          <span className="text-sm">{profile?.username || user.email}</span>
         </div>
         <Button variant="ghost" size="sm" onClick={handleSignOut}>
           <LogOut className="w-4 h-4 mr-1" />
