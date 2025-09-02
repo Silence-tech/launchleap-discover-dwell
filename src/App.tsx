@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/hooks/useAuth";
+import { AuthGuard } from "@/components/AuthGuard";
 import { Layout } from "@/components/layout/Layout";
 import { Home } from "@/pages/Home";
 import { Submit } from "@/pages/Submit";
@@ -12,6 +13,7 @@ import { Discover } from "@/pages/Discover";
 import { ToolDetail } from "@/pages/ToolDetail";
 import { Profile } from "@/pages/Profile";
 import { Settings } from "@/pages/Settings";
+import { Auth } from "@/pages/Auth";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -19,7 +21,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="launchleap-theme">
+    <ThemeProvider defaultTheme="light" storageKey="producshine-theme">
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -31,10 +33,13 @@ const App = () => (
                   <Home />
                 </Layout>
               } />
+              <Route path="/auth" element={<Auth />} />
               <Route path="/submit" element={
-                <Layout>
-                  <Submit />
-                </Layout>
+                <AuthGuard>
+                  <Layout>
+                    <Submit />
+                  </Layout>
+                </AuthGuard>
               } />
               <Route path="/discover" element={
                 <Layout>
@@ -52,14 +57,18 @@ const App = () => (
                 </Layout>
               } />
               <Route path="/profile" element={
-                <Layout>
-                  <Profile />
-                </Layout>
+                <AuthGuard>
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                </AuthGuard>
               } />
               <Route path="/settings" element={
-                <Layout>
-                  <Settings />
-                </Layout>
+                <AuthGuard>
+                  <Layout>
+                    <Settings />
+                  </Layout>
+                </AuthGuard>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

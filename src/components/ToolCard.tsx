@@ -108,7 +108,7 @@ export function ToolCard({ tool, onUpvote }: ToolCardProps) {
               <div className="flex items-center space-x-2 text-sm text-glass-foreground/60">
                 <Calendar className="w-3 h-3" />
                 <span>{new Date(tool.launchDate).toLocaleDateString()}</span>
-                <Badge variant={tool.isPaid ? "secondary" : "outline"} className="text-xs">
+                 <Badge variant={tool.isPaid ? "secondary" : "outline"} className="text-xs" title={tool.isPaid ? "This tool has paid features" : "This tool is free to use"}>
                   <Tag className="w-3 h-3 mr-1" />
                   {tool.isPaid ? "Paid" : "Free"}
                 </Badge>

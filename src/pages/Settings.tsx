@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Save, User } from 'lucide-react'
+import { Save, User, Trash2, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/integrations/supabase/client'
 
 export function Settings() {
-  const { user, profile, loading, updateProfile } = useAuth()
+  const { user, profile, loading, updateProfile, signOut } = useAuth()
   const navigate = useNavigate()
   const { toast } = useToast()
   
@@ -19,6 +21,7 @@ export function Settings() {
     bio: ''
   })
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -60,6 +63,72 @@ export function Settings() {
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (!user) return
+    
+    setDeleting(true)
+    try {
+      // Delete user's tools first
+      await supabase
+        .from('tools')
+        .delete()
+        .eq('user_id', user.id)
+      
+      // Delete user's upvotes
+      await supabase
+        .from('upvotes')
+        .delete()
+        .eq('user_id', user.id)
+      
+      // Delete user's profile
+      await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', user.id)
+      
+      // Sign out and redirect
+      await signOut()
+      navigate('/')
+      
+      toast({
+        title: 'Account deleted',
+        description: 'Your account has been permanently deleted.',
+      })
+    } catch (error) {
+      console.error('Error deleting account:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to delete account. Please try again.',
+        variant: 'destructive'
+      })
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const handleRemoveAllTools = async () => {
+    if (!user) return
+    
+    try {
+      await supabase
+        .from('tools')
+        .delete()
+        .eq('user_id', user.id)
+      
+      toast({
+        title: 'Tools removed',
+        description: 'All your tools have been removed from Producshine.',
+      })
+    } catch (error) {
+      console.error('Error removing tools:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to remove tools. Please try again.',
+        variant: 'destructive'
+      })
     }
   }
 
@@ -126,7 +195,7 @@ export function Settings() {
                 className="bg-glass/30 backdrop-blur-sm border-glass-border/40"
               />
               <p className="text-sm text-glass-foreground/60">
-                This is how others will see you on LaunchLeap
+                This is how others will see you on Producshine
               </p>
             </div>
 
@@ -195,6 +264,87 @@ export function Settings() {
               </Button>
             </div>
           </form>
+
+          {/* Danger Zone */}
+          <div className="mt-12 pt-8 border-t border-glass-border/30">
+            <h3 className="text-lg font-semibold text-red-400 mb-4 flex items-center">
+              <AlertTriangle className="w-5 h-5 mr-2" />
+              Danger Zone
+            </h3>
+            <div className="space-y-4">
+              {/* Remove All Tools */}
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium text-red-300">Remove All Tools</h4>
+                    <p className="text-sm text-red-200/80 mt-1">
+                      Permanently remove all tools you've submitted to Producshine
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Remove Tools
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove All Tools</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete all tools you've submitted. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleRemoveAllTools} className="bg-red-500 hover:bg-red-600">
+                          Remove All Tools
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+
+              {/* Delete Account */}
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium text-red-300">Delete Account</h4>
+                    <p className="text-sm text-red-200/80 mt-1">
+                      Permanently delete your account and all associated data
+                    </p>
+                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Account
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Account</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete your account, all your tools, and all associated data. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={handleDeleteAccount} 
+                          disabled={deleting}
+                          className="bg-red-500 hover:bg-red-600"
+                        >
+                          {deleting ? 'Deleting...' : 'Delete Account'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
