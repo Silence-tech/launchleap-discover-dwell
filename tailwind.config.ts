@@ -51,12 +51,12 @@ export default {
 				
 				/* Existing colors for compatibility */
 				destructive: {
-					DEFAULT: '0 84.2% 60.2%',
-					foreground: '210 40% 98%'
+					DEFAULT: 'hsl(0 84.2% 60.2%)',
+					foreground: 'hsl(210 40% 98%)'
 				},
 				muted: {
-					DEFAULT: '210 40% 96.1%',
-					foreground: '215.4 16.3% 46.9%'
+					DEFAULT: 'hsl(210 40% 96.1%)',
+					foreground: 'hsl(215.4 16.3% 46.9%)'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--glass))',
@@ -67,9 +67,9 @@ export default {
 					foreground: 'hsl(var(--glass-foreground))'
 				},
 				sidebar: {
-					DEFAULT: 'var(--sidebar-background)',
+					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
-					border: 'var(--sidebar-border)'
+					border: 'hsl(var(--sidebar-border))'
 				}
 			},
 			

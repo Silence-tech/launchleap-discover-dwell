@@ -47,9 +47,9 @@
     --radius: 1rem;
 
     /* Sidebar */
-    --sidebar-background: rgba(255, 255, 255, 0.1);
+    --sidebar-background: 255 255 255;
     --sidebar-foreground: 240 15% 15%;
-    --sidebar-border: rgba(255, 255, 255, 0.2);
+    --sidebar-border: 255 255 255;
 
     /* Animations */
     --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -97,9 +97,9 @@
     --ring: 180 100% 60%;
 
     /* Sidebar */
-    --sidebar-background: rgba(0, 0, 0, 0.3);
+    --sidebar-background: 240 15% 12%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-border: rgba(255, 255, 255, 0.1);
+    --sidebar-border: 240 30% 25%;
   }
 }
 
