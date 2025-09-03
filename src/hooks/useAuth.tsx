@@ -102,14 +102,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInWithGoogle = async () => {
-    // Use Replit domain for OAuth redirect in production, fallback to current origin for local dev
-    // IMPORTANT: Add these URLs to Supabase Dashboard → Authentication → URL Configuration → Redirect URLs:
-    // - https://b5aef72d-cab7-41e7-98ad-72b42c9a583f-00-g1lw2e9ri9rr.janeway.replit.dev/
-    // - https://your-production-domain.com/ (if deploying elsewhere)
-    // - http://localhost:8080/ (for local development)
-    const redirectUrl = process.env.NODE_ENV === 'production' || window.location.hostname.includes('replit.dev')
-      ? 'https://b5aef72d-cab7-41e7-98ad-72b42c9a583f-00-g1lw2e9ri9rr.janeway.replit.dev/'
-      : `${window.location.origin}/`
+    // Dynamic redirect URL that works with any domain
+    const redirectUrl = `${window.location.origin}/`
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
