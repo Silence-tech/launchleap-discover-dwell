@@ -42,13 +42,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
         .single()
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') { // PGRST116 = No rows found
         console.error('Error fetching profile:', error)
         return null
       }
-      return data
+      return data || null
     } catch (error) {
       console.error('Error fetching profile:', error)
+      return null
+    }
+  }
+
+  const createProfile = async (user: User) => {
+    try {
+      const profileData = {
+        user_id: user.id,
+        username: user.user_metadata?.full_name || user.email?.split('@')[0] || null,
+        avatar_url: user.user_metadata?.avatar_url || null,
+        tagline: null,
+        bio: null,
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert(profileData)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error creating profile:', error)
+        return null
+      }
+      
+      console.log('Profile created successfully:', data)
+      return data
+    } catch (error) {
+      console.error('Error creating profile:', error)
       return null
     }
   }
@@ -107,7 +136,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null)
       
       if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile)
+        fetchProfile(session.user.id).then(async (profileData) => {
+          // If no profile exists, create one for existing sessions
+          if (!profileData) {
+            console.log('Creating profile for existing session...')
+            profileData = await createProfile(session.user)
+          }
+          setProfile(profileData)
+        })
       }
       setLoading(false)
     })
@@ -120,13 +156,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           setTimeout(async () => {
-            const profileData = await fetchProfile(session.user.id)
-            setProfile(profileData)
+            let profileData = await fetchProfile(session.user.id)
             
-            // If this is a new login (SIGNED_IN event) and no profile exists yet, redirect to profile setup
+            // If this is a new login (SIGNED_IN event) and no profile exists yet, create one
             if (event === 'SIGNED_IN' && !profileData) {
-              navigate('/profile')
+              console.log('Creating new profile for OAuth user...')
+              profileData = await createProfile(session.user)
+              if (profileData) {
+                console.log('Profile created successfully:', profileData)
+              }
             }
+            
+            setProfile(profileData)
           }, 0)
         } else {
           setProfile(null)
