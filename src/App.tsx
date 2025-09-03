@@ -10,10 +10,13 @@ import { Layout } from "@/components/layout/Layout";
 import { Home } from "@/pages/Home";
 import { Submit } from "@/pages/Submit";
 import { Discover } from "@/pages/Discover";
+import { Trending } from "@/pages/Trending";
 import { ToolDetail } from "@/pages/ToolDetail";
 import { Profile } from "@/pages/Profile";
 import { Settings } from "@/pages/Settings";
 import { Auth } from "@/pages/Auth";
+import { Login } from "@/pages/Login";
+import { Signup } from "@/pages/Signup";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -24,7 +27,7 @@ const App = () => (
     <ThemeProvider defaultTheme="light" storageKey="producshine-theme">
       <TooltipProvider>
         <Toaster />
-        <Sonner />
+        <Sonner duration={3000} />
         <BrowserRouter>
           <AuthProvider>
             <Routes>
@@ -33,8 +36,10 @@ const App = () => (
                   <Home />
                 </Layout>
               } />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/submit" element={
+              <Route path="/submit-tool" element={
                 <AuthGuard>
                   <Layout>
                     <Submit />
@@ -48,12 +53,17 @@ const App = () => (
               } />
               <Route path="/trending" element={
                 <Layout>
-                  <Discover />
+                  <Trending />
                 </Layout>
               } />
               <Route path="/tool/:id" element={
                 <Layout>
                   <ToolDetail />
+                </Layout>
+              } />
+              <Route path="/profile/:username" element={
+                <Layout>
+                  <Profile />
                 </Layout>
               } />
               <Route path="/profile" element={

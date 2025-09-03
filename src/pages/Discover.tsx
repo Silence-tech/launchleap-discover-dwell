@@ -1,92 +1,141 @@
-import { useState } from "react"
-import { Search, Filter, TrendingUp, Clock, Star } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Search, Filter, Clock, Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ToolCard } from "@/components/ToolCard"
+import { LoadingSpinner } from "@/components/LoadingSpinner"
+import { UpvoteButton } from "@/components/UpvoteButton"
+import { Badge } from "@/components/ui/badge"
+import { useAuth } from "@/hooks/useAuth"
+import { supabase } from "@/integrations/supabase/client"
+import { Calendar, ExternalLink, Tag } from "lucide-react"
+import { Link } from "react-router-dom"
 
-// Mock data - replace with actual data from Supabase
-const mockTools = [
-  {
-    id: "1",
-    name: "CloudFlow AI",
-    description: "Transform your workflow with AI-powered automation that learns and adapts to your team's needs. Perfect for streamlining complex processes.",
-    logoUrl: "",
-    websiteUrl: "https://example.com",
-    launchDate: "2025-08-15",
-    isPaid: false,
-    isUpvoted: false,
-  },
-  {
-    id: "2", 
-    name: "DesignSpark Pro",
-    description: "Create stunning visuals with our advanced design toolkit. Perfect for teams and solo creators who need professional-grade design tools.",
-    logoUrl: "",
-    websiteUrl: "https://example.com",
-    launchDate: "2025-08-22",
-    isPaid: true,
-    isUpvoted: true,
-  },
-  {
-    id: "3",
-    name: "DataSync Hub",
-    description: "Seamlessly connect all your data sources with our powerful integration platform. Build workflows that sync data across 100+ applications.",
-    logoUrl: "",
-    websiteUrl: "https://example.com", 
-    launchDate: "2025-08-08",
-    isPaid: false,
-    isUpvoted: false,
-  },
-  {
-    id: "4",
-    name: "CodeMentor AI",
-    description: "Get instant code reviews and suggestions from our advanced AI programming assistant. Support for 20+ programming languages.",
-    logoUrl: "",
-    websiteUrl: "https://example.com",
-    launchDate: "2025-08-05",
-    isPaid: true,
-    isUpvoted: false,
-  },
-  {
-    id: "5",
-    name: "TaskFlow Manager",
-    description: "Organize your team's work with intuitive project management tools. Features real-time collaboration and smart scheduling.",
-    logoUrl: "",
-    websiteUrl: "https://example.com",
-    launchDate: "2025-08-12",
-    isPaid: false,
-    isUpvoted: true,
-  },
-  {
-    id: "6",
-    name: "VideoEdit Studio",
-    description: "Professional video editing made simple. Create stunning videos with AI-powered effects and automated workflows.",
-    logoUrl: "",
-    websiteUrl: "https://example.com",
-    launchDate: "2025-08-07",
-    isPaid: true,
-    isUpvoted: false,
-  }
-]
+interface Tool {
+  id: number
+  title: string
+  description: string
+  url: string | null
+  launch_date: string | null
+  is_paid: boolean | null
+  logo_url: string | null
+  upvotes_count: number
+  user_id: string | null
+  created_at: string
+  isUpvoted?: boolean
+}
 
 export function Discover() {
+  const { user } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedFilter, setSelectedFilter] = useState("trending")
+  const [selectedFilter, setSelectedFilter] = useState("newest")
+  const [tools, setTools] = useState<Tool[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   const filters = [
-    { id: "trending", label: "Trending", icon: TrendingUp },
     { id: "newest", label: "Newest", icon: Clock },
     { id: "featured", label: "Featured", icon: Star },
   ]
 
-  const handleUpvote = (toolId: string) => {
-    console.log("Upvote tool:", toolId)
-    // TODO: Implement upvote functionality with Supabase
+  useEffect(() => {
+    fetchTools()
+  }, [user, selectedFilter])
+
+  const fetchTools = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Fetch tools with different ordering based on filter
+      let query = supabase.from('tools').select('*')
+      
+      if (selectedFilter === 'newest') {
+        query = query.order('created_at', { ascending: false })
+      } else {
+        query = query.order('upvotes_count', { ascending: false })
+      }
+
+      const { data: toolsData, error: toolsError } = await query
+
+      if (toolsError) throw toolsError
+
+      if (user) {
+        // Check which tools the user has upvoted
+        const toolIds = toolsData?.map(tool => tool.id) || []
+        
+        if (toolIds.length > 0) {
+          const { data: upvotesData, error: upvotesError } = await supabase
+            .from('upvotes')
+            .select('tool_id')
+            .eq('user_id', user.id)
+            .in('tool_id', toolIds)
+
+          if (upvotesError) throw upvotesError
+
+          const upvotedToolIds = new Set(upvotesData?.map(upvote => upvote.tool_id))
+          
+          const toolsWithUpvoteStatus = toolsData?.map(tool => ({
+            ...tool,
+            upvotes_count: (tool as any).upvotes_count || 0,
+            isUpvoted: upvotedToolIds.has(tool.id)
+          })) || []
+
+          setTools(toolsWithUpvoteStatus)
+        } else {
+          const toolsWithDefaults = toolsData?.map(tool => ({
+            ...tool,
+            upvotes_count: (tool as any).upvotes_count || 0
+          })) || []
+          setTools(toolsWithDefaults)
+        }
+      } else {
+        const toolsWithDefaults = toolsData?.map(tool => ({
+          ...tool,
+          upvotes_count: (tool as any).upvotes_count || 0
+        })) || []
+        setTools(toolsWithDefaults)
+      }
+    } catch (error) {
+      console.error('Error fetching tools:', error)
+      setError('Failed to load tools. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const filteredTools = mockTools.filter(tool =>
-    tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const handleUpvoteChange = (toolId: number, isUpvoted: boolean, newCount: number) => {
+    setTools(prevTools => 
+      prevTools.map(tool => 
+        tool.id === toolId 
+          ? { ...tool, isUpvoted, upvotes_count: newCount }
+          : tool
+      )
+    )
+  }
+
+  const filteredTools = tools.filter(tool =>
+    tool.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     tool.description.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button onClick={fetchTools}>Try Again</Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen py-8">
@@ -151,16 +200,84 @@ export function Discover() {
           {filteredTools.map((tool, index) => (
             <div 
               key={tool.id} 
-              className="animate-fade-in"
+              className="group relative bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl p-6 shadow-glass hover:shadow-cosmic transition-all duration-500 animate-glass-morph hover:scale-[1.02] animate-fade-in"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <ToolCard tool={tool} onUpvote={handleUpvote} />
+              {/* Floating glow effect */}
+              <div className="absolute inset-0 bg-gradient-cosmic opacity-0 group-hover:opacity-20 rounded-2xl transition-opacity duration-500" />
+              
+              <div className="relative z-10">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 rounded-xl bg-glass/50 backdrop-blur-sm border border-glass-border/20 flex items-center justify-center overflow-hidden">
+                      {tool.logo_url ? (
+                        <img 
+                          src={tool.logo_url} 
+                          alt={`${tool.title} logo`}
+                          className="w-8 h-8 object-contain"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-gradient-cosmic rounded-lg" />
+                      )}
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-semibold text-glass-foreground group-hover:text-primary transition-colors">
+                        {tool.title}
+                      </h3>
+                      <div className="flex items-center space-x-2 text-sm text-glass-foreground/60">
+                        <Calendar className="w-3 h-3" />
+                        <span>{tool.launch_date ? new Date(tool.launch_date).toLocaleDateString() : 'N/A'}</span>
+                        <Badge 
+                          variant={tool.is_paid ? "secondary" : "outline"} 
+                          className="text-xs" 
+                          title={tool.is_paid ? "This tool has paid features" : "This tool is free to use"}
+                        >
+                          <Tag className="w-3 h-3 mr-1" />
+                          {tool.is_paid ? "Paid" : "Free"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <UpvoteButton
+                    toolId={tool.id}
+                    isUpvoted={tool.isUpvoted || false}
+                    upvotesCount={tool.upvotes_count}
+                    onUpvoteChange={handleUpvoteChange}
+                  />
+                </div>
+
+                {/* Description */}
+                <p className="text-glass-foreground/80 text-sm mb-4 line-clamp-2">
+                  {tool.description}
+                </p>
+
+                {/* Actions */}
+                <div className="flex space-x-2">
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    onClick={() => tool.url && window.open(tool.url, '_blank')}
+                    className="flex-1"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-1" />
+                    Visit
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Link to={`/tool/${tool.id}`} className="flex items-center">
+                      Learn More
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
 
         {/* Load More */}
-        {filteredTools.length > 0 && (
+        {filteredTools.length > 6 && (
           <div className="text-center mt-12">
             <Button variant="outline" size="lg">
               Load More Tools
