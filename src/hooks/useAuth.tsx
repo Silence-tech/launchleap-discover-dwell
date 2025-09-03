@@ -73,7 +73,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/`
+    // Use Replit domain for OAuth redirect in production, fallback to current origin for local dev
+    // IMPORTANT: Add these URLs to Supabase Dashboard → Authentication → URL Configuration → Redirect URLs:
+    // - https://b5aef72d-cab7-41e7-98ad-72b42c9a583f-00-g1lw2e9ri9rr.janeway.replit.dev/
+    // - https://your-production-domain.com/ (if deploying elsewhere)
+    // - http://localhost:8080/ (for local development)
+    const redirectUrl = process.env.NODE_ENV === 'production' || window.location.hostname.includes('replit.dev')
+      ? 'https://b5aef72d-cab7-41e7-98ad-72b42c9a583f-00-g1lw2e9ri9rr.janeway.replit.dev/'
+      : `${window.location.origin}/`
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -114,6 +122,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(async () => {
             const profileData = await fetchProfile(session.user.id)
             setProfile(profileData)
+            
+            // If this is a new login (SIGNED_IN event) and no profile exists yet, redirect to profile setup
+            if (event === 'SIGNED_IN' && !profileData) {
+              navigate('/profile')
+            }
           }, 0)
         } else {
           setProfile(null)
