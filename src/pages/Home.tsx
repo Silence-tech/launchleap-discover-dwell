@@ -1,57 +1,100 @@
+import { useState, useEffect } from "react"
 import { ArrowRight, Sparkles, TrendingUp, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ToolCard } from "@/components/ToolCard"
+import { LoadingSpinner } from "@/components/LoadingSpinner"
 import { Link } from "react-router-dom"
+import { supabase } from "@/integrations/supabase/client"
+import { useAuth } from "@/hooks/useAuth"
 import heroImage from "@/assets/hero-cosmic.jpg"
 
-// Mock data - replace with actual data from Supabase
-const mockTools = [
-  {
-    id: "1",
-    name: "CloudFlow AI",
-    description: "Transform your workflow with AI-powered automation that learns and adapts to your team's needs.",
-    logoUrl: "",
-    websiteUrl: "https://example.com",
-    launchDate: "2025-08-15",
-    isPaid: false,
-    isUpvoted: false,
-  },
-  {
-    id: "2", 
-    name: "DesignSpark Pro",
-    description: "Create stunning visuals with our advanced design toolkit. Perfect for teams and solo creators.",
-    logoUrl: "",
-    websiteUrl: "https://example.com",
-    launchDate: "2025-08-22",
-    isPaid: true,
-    isUpvoted: true,
-  },
-  {
-    id: "3",
-    name: "DataSync Hub",
-    description: "Seamlessly connect all your data sources with our powerful integration platform.",
-    logoUrl: "",
-    websiteUrl: "https://example.com", 
-    launchDate: "2025-08-08",
-    isPaid: false,
-    isUpvoted: false,
-  },
-  {
-    id: "4",
-    name: "CodeMentor AI",
-    description: "Get instant code reviews and suggestions from our advanced AI programming assistant.",
-    logoUrl: "",
-    websiteUrl: "https://example.com",
-    launchDate: "2025-08-05",
-    isPaid: true,
-    isUpvoted: false,
-  },
-]
+interface Tool {
+  id: number
+  title: string
+  description: string
+  url: string | null
+  launch_date: string | null
+  is_paid: boolean | null
+  logo_url: string | null
+  upvotes_count: number
+  user_id: string | null
+  created_at: string
+  isUpvoted?: boolean
+}
 
 export function Home() {
-  const handleUpvote = (toolId: string) => {
-    console.log("Upvote tool:", toolId)
-    // TODO: Implement upvote functionality with Supabase
+  const { user } = useAuth()
+  const [tools, setTools] = useState<Tool[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchFeaturedTools()
+  }, [user])
+
+  const fetchFeaturedTools = async () => {
+    try {
+      setLoading(true)
+
+      // Fetch top 4 tools by upvotes for homepage
+      const { data: toolsData, error: toolsError } = await supabase
+        .from('tools')
+        .select('*')
+        .order('upvotes_count', { ascending: false })
+        .limit(4)
+
+      if (toolsError) throw toolsError
+
+      if (user) {
+        // Check which tools the user has upvoted
+        const toolIds = toolsData?.map(tool => tool.id) || []
+        
+        if (toolIds.length > 0) {
+          const { data: upvotesData, error: upvotesError } = await supabase
+            .from('upvotes')
+            .select('tool_id')
+            .eq('user_id', user.id)
+            .in('tool_id', toolIds)
+
+          if (upvotesError) throw upvotesError
+
+          const upvotedToolIds = new Set(upvotesData?.map(upvote => upvote.tool_id))
+          
+          const toolsWithUpvoteStatus = toolsData?.map(tool => ({
+            ...tool,
+            upvotes_count: tool.upvotes_count || 0,
+            isUpvoted: upvotedToolIds.has(tool.id)
+          })) || []
+
+          setTools(toolsWithUpvoteStatus)
+        } else {
+          const toolsWithDefaults = toolsData?.map(tool => ({
+            ...tool,
+            upvotes_count: tool.upvotes_count || 0
+          })) || []
+          setTools(toolsWithDefaults)
+        }
+      } else {
+        const toolsWithDefaults = toolsData?.map(tool => ({
+          ...tool,
+          upvotes_count: tool.upvotes_count || 0
+        })) || []
+        setTools(toolsWithDefaults)
+      }
+    } catch (error) {
+      console.error('Error fetching featured tools:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUpvoteChange = (toolId: number, isUpvoted: boolean, newCount: number) => {
+    setTools(prevTools => 
+      prevTools.map(tool => 
+        tool.id === toolId 
+          ? { ...tool, isUpvoted, upvotes_count: newCount }
+          : tool
+      )
+    )
   }
 
   return (
@@ -117,15 +160,39 @@ export function Home() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            {mockTools.map((tool, index) => (
-              <div 
-                key={tool.id} 
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <ToolCard tool={tool} onUpvote={handleUpvote} />
+            {loading ? (
+              <div className="col-span-full flex justify-center py-12">
+                <LoadingSpinner size="lg" />
               </div>
-            ))}
+            ) : (
+              tools.map((tool, index) => (
+                <div 
+                  key={tool.id} 
+                  className="animate-fade-in"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
+                  <ToolCard 
+                    tool={{
+                      id: tool.id.toString(),
+                      name: tool.title,
+                      description: tool.description,
+                      logoUrl: tool.logo_url || "",
+                      websiteUrl: tool.url || "",
+                      launchDate: tool.launch_date || "",
+                      isPaid: tool.is_paid || false,
+                      isUpvoted: tool.isUpvoted || false
+                    }} 
+                    onUpvote={(toolId) => {
+                      const numericId = parseInt(toolId);
+                      const tool = tools.find(t => t.id === numericId);
+                      if (tool) {
+                        handleUpvoteChange(numericId, !tool.isUpvoted, tool.upvotes_count + (tool.isUpvoted ? -1 : 1));
+                      }
+                    }} 
+                  />
+                </div>
+              ))
+            )}
           </div>
           
           <div className="text-center mt-12">

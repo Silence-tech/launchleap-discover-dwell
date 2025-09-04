@@ -17,7 +17,7 @@ import { Settings } from "@/pages/Settings";
 import { Auth } from "@/pages/Auth";
 import { Login } from "@/pages/Login";
 import { Signup } from "@/pages/Signup";
-import Index from "./pages/Index";
+import { ProfileSetup } from "@/pages/ProfileSetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +60,13 @@ const App = () => (
                 <Layout>
                   <ToolDetail />
                 </Layout>
+              } />
+              <Route path="/profile-setup" element={
+                <AuthGuard>
+                  <Layout>
+                    <ProfileSetup />
+                  </Layout>
+                </AuthGuard>
               } />
               <Route path="/profile/:username" element={
                 <Layout>

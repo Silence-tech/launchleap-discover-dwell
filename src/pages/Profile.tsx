@@ -1,28 +1,85 @@
-import { useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import { User, Settings } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useAuth } from '@/hooks/useAuth'
+import { useEffect, useState } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+import { LoadingSpinner } from "@/components/LoadingSpinner"
+import { useAuth } from "@/hooks/useAuth"
+import { supabase } from "@/integrations/supabase/client"
+import { Button } from "@/components/ui/button"
+import { Settings, Calendar, Mail, User } from "lucide-react"
+import { Link } from "react-router-dom"
+
+interface Profile {
+  id: string
+  user_id: string
+  username: string | null
+  tagline: string | null
+  bio: string | null
+  avatar_url: string | null
+  created_at: string
+  updated_at: string
+}
 
 export function Profile() {
-  const { user, profile, loading } = useAuth()
+  const { username } = useParams<{ username: string }>()
+  const { user, profile: currentUserProfile, loading: authLoading } = useAuth()
   const navigate = useNavigate()
+  
+  const [profileData, setProfileData] = useState<Profile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isOwnProfile, setIsOwnProfile] = useState(false)
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/')
-    }
-  }, [user, loading, navigate])
+    const fetchProfile = async () => {
+      if (authLoading) return
+      
+      setLoading(true)
+      
+      try {
+        if (username) {
+          // Fetch profile by username (public profile view)
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('username', username)
+            .maybeSingle()
 
-  if (loading) {
+          if (error) throw error
+
+          if (data) {
+            setProfileData(data)
+            setIsOwnProfile(user?.id === data.user_id)
+          } else {
+            navigate('/') // Profile not found, redirect to home
+            return
+          }
+        } else if (user && currentUserProfile) {
+          // No username in URL, show current user's profile
+          setProfileData(currentUserProfile)
+          setIsOwnProfile(true)
+        } else if (!user) {
+          // Not logged in and no username, redirect to login
+          navigate('/login')
+          return
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+        navigate('/')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProfile()
+  }, [username, user, currentUserProfile, authLoading, navigate])
+
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <LoadingSpinner size="lg" />
       </div>
     )
   }
 
-  if (!user || !profile) {
+  if (!profileData) {
     return null
   }
 
@@ -32,66 +89,76 @@ export function Profile() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent">
-            Profile
+            {isOwnProfile ? "Your Profile" : `${profileData.username}'s Profile`}
           </h1>
           <p className="text-xl text-glass-foreground/80">
-            Manage your LaunchLeap profile and settings
+            {isOwnProfile ? "Manage your Producshine profile and settings" : "Discover this user's contributions to Producshine"}
           </p>
         </div>
 
-        {/* Profile Card */}
-        <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-8 shadow-cosmic mb-8">
-          <div className="flex flex-col md:flex-row items-start gap-8">
+        {/* Profile Header */}
+        <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl p-8 shadow-glass mb-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
             {/* Avatar */}
             <div className="flex-shrink-0">
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.username || 'User Avatar'}
-                  className="w-32 h-32 rounded-2xl object-cover border-2 border-glass-border/30"
-                />
-              ) : (
-                <div className="w-32 h-32 bg-gradient-cosmic rounded-2xl shadow-glow flex items-center justify-center">
-                  <User className="w-16 h-16 text-white" />
-                </div>
-              )}
+              <div className="w-24 h-24 rounded-full bg-glass/50 backdrop-blur-sm border-2 border-glass-border/20 flex items-center justify-center overflow-hidden">
+                {profileData.avatar_url ? (
+                  <img 
+                    src={profileData.avatar_url} 
+                    alt="Profile avatar"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                ) : (
+                  <User className="w-12 h-12 text-glass-foreground/60" />
+                )}
+              </div>
             </div>
 
             {/* Profile Info */}
-            <div className="flex-1 min-w-0">
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold text-glass-foreground mb-2">
-                  {profile.username || user.email}
-                </h2>
-                <p className="text-glass-foreground/60 text-sm mb-4">
-                  {user.email}
-                </p>
-                
-                {profile.tagline && (
-                  <p className="text-xl text-primary font-medium mb-4">
-                    {profile.tagline}
-                  </p>
-                )}
-                
-                {profile.bio && (
-                  <p className="text-glass-foreground/80 leading-relaxed">
-                    {profile.bio}
-                  </p>
-                )}
-                
-                {!profile.tagline && !profile.bio && (
-                  <p className="text-glass-foreground/50 italic">
-                    No bio or tagline added yet. Click "Edit Profile" to add one!
-                  </p>
+            <div className="flex-1">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-glass-foreground mb-2">
+                    {profileData.username || "Anonymous User"}
+                  </h1>
+                  {profileData.tagline && (
+                    <p className="text-lg text-glass-foreground/80 mb-4">
+                      {profileData.tagline}
+                    </p>
+                  )}
+                  <div className="flex items-center space-x-4 text-sm text-glass-foreground/60">
+                    {isOwnProfile && user?.email && (
+                      <div className="flex items-center space-x-1">
+                        <Mail className="w-4 h-4" />
+                        <span>{user.email}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>Member since {new Date(profileData.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Edit Profile Button - only show for own profile */}
+                {isOwnProfile && (
+                  <Button variant="outline" className="mt-4 md:mt-0" asChild>
+                    <Link to="/settings">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Link>
+                  </Button>
                 )}
               </div>
 
-              <Link to="/settings">
-                <Button variant="default" className="inline-flex items-center">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Edit Profile
-                </Button>
-              </Link>
+              {/* Bio */}
+              {profileData.bio && (
+                <div className="mt-6 p-4 bg-glass/20 backdrop-blur-sm rounded-lg border border-glass-border/20">
+                  <p className="text-glass-foreground/80 leading-relaxed">
+                    {profileData.bio}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -108,7 +175,7 @@ export function Profile() {
           </div>
           <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl p-6 text-center shadow-glass">
             <div className="text-2xl font-bold text-accent mb-2">
-              {new Date(profile.created_at).toLocaleDateString('en-US', { 
+              {new Date(profileData.created_at).toLocaleDateString('en-US', { 
                 month: 'short', 
                 year: 'numeric' 
               })}

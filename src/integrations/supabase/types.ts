@@ -20,6 +20,7 @@ export type Database = {
           bio: string | null
           created_at: string
           id: string
+          is_admin: boolean | null
           tagline: string | null
           updated_at: string
           user_id: string
@@ -30,6 +31,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           id?: string
+          is_admin?: boolean | null
           tagline?: string | null
           updated_at?: string
           user_id: string
@@ -40,6 +42,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           id?: string
+          is_admin?: boolean | null
           tagline?: string | null
           updated_at?: string
           user_id?: string
@@ -56,6 +59,7 @@ export type Database = {
           launch_date: string | null
           logo_url: string | null
           title: string
+          upvotes_count: number | null
           url: string | null
           user_id: string | null
         }
@@ -67,6 +71,7 @@ export type Database = {
           launch_date?: string | null
           logo_url?: string | null
           title: string
+          upvotes_count?: number | null
           url?: string | null
           user_id?: string | null
         }
@@ -78,6 +83,7 @@ export type Database = {
           launch_date?: string | null
           logo_url?: string | null
           title?: string
+          upvotes_count?: number | null
           url?: string | null
           user_id?: string | null
         }

@@ -82,14 +82,13 @@ export function UpvoteButton({ toolId, isUpvoted, upvotesCount, onUpvoteChange }
       size="sm"
       onClick={handleUpvote}
       disabled={isLoading}
-      className={`flex items-center space-x-1 transition-all duration-200 ${
+      className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 ${
         currentIsUpvoted 
           ? 'text-red-500 bg-red-50/10 hover:text-red-600 hover:bg-red-50/20' 
           : 'text-glass-foreground/60 hover:text-red-500 hover:bg-red-50/10'
       }`}
     >
       <Heart className={`w-4 h-4 transition-all duration-200 ${currentIsUpvoted ? 'fill-current' : ''}`} />
-      <span className="text-sm font-medium">{currentCount}</span>
     </Button>
   )
 }
