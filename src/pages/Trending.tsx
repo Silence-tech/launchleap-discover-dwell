@@ -1,111 +1,126 @@
-import { useState, useEffect } from "react"
-import { TrendingUp, ExternalLink, Calendar, Tag } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { LoadingSpinner } from "@/components/LoadingSpinner"
-import { UpvoteButton } from "@/components/UpvoteButton"
-import { useAuth } from "@/hooks/useAuth"
-import { supabase } from "@/integrations/supabase/client"
-import { Link } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { TrendingUp, ExternalLink, Calendar, Tag } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { UpvoteButton } from "@/components/UpvoteButton";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 
 interface Tool {
-  id: number
-  title: string
-  description: string
-  url: string | null
-  launch_date: string | null
-  is_paid: boolean | null
-  logo_url: string | null
-  upvotes_count: number
-  user_id: string | null
-  created_at: string
-  isUpvoted?: boolean
+  id: number;
+  title: string;
+  description: string;
+  url: string | null;
+  launch_date: string | null;
+  is_paid: boolean | null;
+  logo_url: string | null;
+  upvotes_count: number;
+  user_id: string | null;
+  created_at: string;
+  isUpvoted?: boolean;
 }
 
 export function Trending() {
-  const { user } = useAuth()
-  const [tools, setTools] = useState<Tool[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth();
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // useEffect(() => {
+  //   fetchTrendingTools()
+  // }, [user])
   useEffect(() => {
-    fetchTrendingTools()
-  }, [user])
+    fetchTrendingTools();
+  }, []);
 
   const fetchTrendingTools = async () => {
     try {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
 
       // Fetch tools ordered by upvotes_count (trending)
       const { data: toolsData, error: toolsError } = await supabase
-        .from('tools')
-        .select('*')
-        .order('upvotes_count', { ascending: false })
-        .order('created_at', { ascending: false })
+        .from("tools")
+        .select("*")
+        .order("upvotes_count", { ascending: false })
+        .order("created_at", { ascending: false });
 
-      if (toolsError) throw toolsError
+      if (toolsError) throw toolsError;
 
       if (user) {
         // Check which tools the user has upvoted
-        const toolIds = toolsData?.map(tool => tool.id) || []
-        
+        const toolIds = toolsData?.map((tool) => tool.id) || [];
+
         if (toolIds.length > 0) {
           const { data: upvotesData, error: upvotesError } = await supabase
-            .from('upvotes')
-            .select('tool_id')
-            .eq('user_id', user.id)
-            .in('tool_id', toolIds)
+            .from("upvotes")
+            .select("tool_id")
+            .eq("user_id", user.id)
+            .in("tool_id", toolIds);
 
-          if (upvotesError) throw upvotesError
+          if (upvotesError) throw upvotesError;
 
-          const upvotedToolIds = new Set(upvotesData?.map(upvote => upvote.tool_id))
-          
-          const toolsWithUpvoteStatus = toolsData?.map(tool => ({
-            ...tool,
-            upvotes_count: (tool as any).upvotes_count || 0,
-            isUpvoted: upvotedToolIds.has(tool.id)
-          })) || []
+          const upvotedToolIds = new Set(
+            upvotesData?.map((upvote) => upvote.tool_id),
+          );
 
-          setTools(toolsWithUpvoteStatus)
+          const toolsWithUpvoteStatus =
+            toolsData?.map((tool) => ({
+              ...tool,
+              upvotes_count: (tool as any).upvotes_count || 0,
+              isUpvoted: upvotedToolIds.has(tool.id),
+            })) || [];
+
+          setTools(toolsWithUpvoteStatus);
         } else {
-          const toolsWithDefaults = toolsData?.map(tool => ({
-            ...tool,
-            upvotes_count: (tool as any).upvotes_count || 0
-          })) || []
-          setTools(toolsWithDefaults)
+          const toolsWithDefaults =
+            toolsData?.map((tool) => ({
+              ...tool,
+              upvotes_count: (tool as any).upvotes_count || 0,
+            })) || [];
+          setTools(toolsWithDefaults);
         }
       } else {
-        const toolsWithDefaults = toolsData?.map(tool => ({
-          ...tool,
-          upvotes_count: (tool as any).upvotes_count || 0
-        })) || []
-        setTools(toolsWithDefaults)
+        const toolsWithDefaults =
+          toolsData?.map((tool) => ({
+            ...tool,
+            upvotes_count: (tool as any).upvotes_count || 0,
+          })) || [];
+        setTools(toolsWithDefaults);
       }
     } catch (error) {
-      console.error('Error fetching trending tools:', error)
-      setError('Failed to load trending tools. Please try again.')
+      console.error("Error fetching trending tools:", error);
+      setError("Failed to load trending tools. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleUpvoteChange = (toolId: number, isUpvoted: boolean, newCount: number) => {
-    setTools(prevTools => 
-      prevTools.map(tool => 
-        tool.id === toolId 
-          ? { ...tool, isUpvoted, upvotes_count: newCount }
-          : tool
-      ).sort((a, b) => b.upvotes_count - a.upvotes_count) // Re-sort by upvotes
-    )
-  }
+  const handleUpvoteChange = (
+    toolId: number,
+    isUpvoted: boolean,
+    newCount: number,
+  ) => {
+    setTools(
+      (prevTools) =>
+        prevTools
+          .map((tool) =>
+            tool.id === toolId
+              ? { ...tool, isUpvoted, upvotes_count: newCount }
+              : tool,
+          )
+          .sort((a, b) => b.upvotes_count - a.upvotes_count), // Re-sort by upvotes
+    );
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -116,7 +131,7 @@ export function Trending() {
           <Button onClick={fetchTrendingTools}>Try Again</Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -162,8 +177,8 @@ export function Trending() {
                   {/* Logo */}
                   <div className="flex-shrink-0 w-16 h-16 rounded-xl bg-glass/50 backdrop-blur-sm border border-glass-border/20 flex items-center justify-center overflow-hidden">
                     {tool.logo_url ? (
-                      <img 
-                        src={tool.logo_url} 
+                      <img
+                        src={tool.logo_url}
                         alt={`${tool.title} logo`}
                         className="w-12 h-12 object-contain"
                       />
@@ -182,19 +197,29 @@ export function Trending() {
                         <div className="flex items-center space-x-3 text-sm text-glass-foreground/60 mb-2">
                           <div className="flex items-center space-x-1">
                             <Calendar className="w-3 h-3" />
-                            <span>{tool.launch_date ? new Date(tool.launch_date).toLocaleDateString() : 'N/A'}</span>
+                            <span>
+                              {tool.launch_date
+                                ? new Date(
+                                    tool.launch_date,
+                                  ).toLocaleDateString()
+                                : "N/A"}
+                            </span>
                           </div>
-                          <Badge 
-                            variant={tool.is_paid ? "secondary" : "outline"} 
+                          <Badge
+                            variant={tool.is_paid ? "secondary" : "outline"}
                             className="text-xs"
-                            title={tool.is_paid ? "This tool has paid features" : "This tool is free to use"}
+                            title={
+                              tool.is_paid
+                                ? "This tool has paid features"
+                                : "This tool is free to use"
+                            }
                           >
                             <Tag className="w-3 h-3 mr-1" />
                             {tool.is_paid ? "Paid" : "Free"}
                           </Badge>
                         </div>
                       </div>
-                      
+
                       {/* Upvote Button */}
                       <UpvoteButton
                         toolId={tool.id}
@@ -213,13 +238,18 @@ export function Trending() {
                       <Button
                         variant="glass"
                         size="sm"
-                        onClick={() => tool.url && window.open(tool.url, '_blank')}
+                        onClick={() =>
+                          tool.url && window.open(tool.url, "_blank")
+                        }
                       >
                         <ExternalLink className="w-4 h-4 mr-1" />
                         Visit
                       </Button>
                       <Button variant="outline" size="sm">
-                        <Link to={`/tool/${tool.id}`} className="flex items-center">
+                        <Link
+                          to={`/tool/${tool.id}`}
+                          className="flex items-center"
+                        >
                           Learn More
                         </Link>
                       </Button>
@@ -232,5 +262,5 @@ export function Trending() {
         )}
       </div>
     </div>
-  )
+  );
 }
