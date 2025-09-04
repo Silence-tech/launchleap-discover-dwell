@@ -31,62 +31,89 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={
-                <Layout>
-                  <Home />
-                </Layout>
-              } />
+              <Route
+                path="/"
+                element={
+                  <Layout>
+                    <Home />
+                  </Layout>
+                }
+              />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/submit-tool" element={
-                <AuthGuard>
+              <Route
+                path="/submit"
+                element={
+                  <AuthGuard>
+                    <Layout>
+                      <Submit />
+                    </Layout>
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/discover"
+                element={
                   <Layout>
-                    <Submit />
+                    <Discover />
                   </Layout>
-                </AuthGuard>
-              } />
-              <Route path="/discover" element={
-                <Layout>
-                  <Discover />
-                </Layout>
-              } />
-              <Route path="/trending" element={
-                <Layout>
-                  <Trending />
-                </Layout>
-              } />
-              <Route path="/tool/:id" element={
-                <Layout>
-                  <ToolDetail />
-                </Layout>
-              } />
-              <Route path="/profile-setup" element={
-                <AuthGuard>
+                }
+              />
+              <Route
+                path="/trending"
+                element={
                   <Layout>
-                    <ProfileSetup />
+                    <Trending />
                   </Layout>
-                </AuthGuard>
-              } />
-              <Route path="/profile/:username" element={
-                <Layout>
-                  <Profile />
-                </Layout>
-              } />
-              <Route path="/profile" element={
-                <AuthGuard>
+                }
+              />
+              <Route
+                path="/tool/:id"
+                element={
+                  <Layout>
+                    <ToolDetail />
+                  </Layout>
+                }
+              />
+              <Route
+                path="/profile-setup"
+                element={
+                  <AuthGuard>
+                    <Layout>
+                      <ProfileSetup />
+                    </Layout>
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/profile/:username"
+                element={
                   <Layout>
                     <Profile />
                   </Layout>
-                </AuthGuard>
-              } />
-              <Route path="/settings" element={
-                <AuthGuard>
-                  <Layout>
-                    <Settings />
-                  </Layout>
-                </AuthGuard>
-              } />
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <AuthGuard>
+                    <Layout>
+                      <Profile />
+                    </Layout>
+                  </AuthGuard>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <AuthGuard>
+                    <Layout>
+                      <Settings />
+                    </Layout>
+                  </AuthGuard>
+                }
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

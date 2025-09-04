@@ -18,7 +18,7 @@ import producshineLogoUrl from "@/assets/producshine-logo.png";
 const navigation = [
   { name: "Home", href: "/", icon: Home },
   { name: "Discover", href: "/discover", icon: Search },
-  { name: "Submit Tool", href: "/submit-tool", icon: Plus },
+  { name: "Submit Tool", href: "/submit", icon: Plus },
   { name: "Trending", href: "/trending", icon: TrendingUp },
   { name: "Profile", href: "/profile", icon: User },
 ];

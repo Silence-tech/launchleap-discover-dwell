@@ -163,7 +163,7 @@ export function Home() {
                 className="min-w-[200px]"
                 asChild
               >
-                <Link to="/submit-tool">Submit Your Tool</Link>
+                <Link to="/submit">Submit Your Tool</Link>
               </Button>
             </div>
           </div>
