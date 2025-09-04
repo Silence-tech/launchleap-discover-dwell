@@ -43,12 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from<Profile>("profiles")
+        .from("profiles")
         .select("*")
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         console.error("Error fetching profile:", error);
         return null;
       }
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
       const { data, error } = await supabase
-        .from<Profile>("profiles")
+        .from("profiles")
         .insert(profileData)
         .select()
         .single();
@@ -99,7 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     if (!user) return;
     const profileData = await fetchProfile(user.id);
-    setProfile(profileData);
+    if (profileData) {
+      setProfile(profileData);
+    }
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
@@ -139,9 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initAuth = async () => {
       try {
-        // Parse OAuth redirect if present and store session
-        // (silently returns if not an OAuth redirect)
-        await supabase.auth.getSessionFromUrl({ storeSession: true });
+        // Skip deprecated getSessionFromUrl - not needed in newer versions
       } catch (err) {
         // not always an OAuth redirect — ignore
         // console.debug('getSessionFromUrl error', err)
@@ -186,13 +186,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               profileData = await createProfile(sess.user);
             }
 
-            setProfile(profileData);
-
-            // Redirect user: if no profile username yet, send to profile-setup; else show profile
-            if (!profileData || !profileData.username) {
-              navigate("/profile-setup");
-            } else {
-              navigate(`/profile/${profileData.username}`);
+            if (profileData) {
+              setProfile(profileData);
+              
+              // Redirect user: if no profile username yet, send to profile-setup; else show profile
+              if (!profileData.username) {
+                navigate("/profile-setup");
+              } else {
+                navigate(`/profile/${profileData.username}`);
+              }
             }
           } catch (err) {
             console.error("Error handling auth state change:", err);
