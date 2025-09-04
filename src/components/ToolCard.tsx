@@ -147,7 +147,7 @@ export function ToolCard({ tool, onUpvote }: ToolCardProps) {
             <ExternalLink className="w-4 h-4 mr-1" />
             Visit
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" asChild>
             <Link to={`/tool/${tool.id}`} className="flex items-center">
               Learn More
             </Link>
