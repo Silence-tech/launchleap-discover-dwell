@@ -22,11 +22,11 @@ function Calendar({
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
-        caption_dropdowns: "flex justify-center gap-1",
-        dropdown: "appearance-none bg-glass/30 backdrop-blur-sm border border-glass-border/40 rounded-lg px-3 py-1 text-sm font-medium text-glass-foreground hover:bg-glass/40 focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer",
-        dropdown_month: "mr-2",
+        caption: "flex flex-col items-center pt-2 pb-4 relative",
+        caption_label: "hidden", // Hide the default label to prevent duplication
+        caption_dropdowns: "flex flex-col items-center gap-2",
+        dropdown: "appearance-none bg-glass/30 backdrop-blur-sm border border-glass-border/40 rounded-lg px-4 py-2 text-sm font-medium text-glass-foreground hover:bg-glass/40 focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer min-w-[120px] text-center",
+        dropdown_month: "",
         dropdown_year: "",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
