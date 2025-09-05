@@ -37,52 +37,90 @@ export function Submit() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    
+    console.log('🚀 Form submission started')
+    
+    if (!user) {
+      console.error('❌ No user found, cannot submit')
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to submit a tool.",
+        variant: "destructive"
+      })
+      return
+    }
     
     setSubmitting(true)
+    console.log('⏳ Setting submitting state to true')
 
     try {
       let logoUrl = null
       
       // Upload logo if provided
       if (formData.logo) {
+        console.log('📁 Starting logo upload:', formData.logo.name)
+        
         const fileExt = formData.logo.name.split('.').pop()
         const fileName = `${Date.now()}.${fileExt}`
+        
+        console.log('📤 Uploading logo with filename:', fileName)
         
         const { error: uploadError } = await supabase.storage
           .from('logos')
           .upload(fileName, formData.logo)
           
-        if (uploadError) throw uploadError
+        if (uploadError) {
+          console.error('❌ Logo upload failed:', uploadError)
+          throw new Error(`Logo upload failed: ${uploadError.message}`)
+        }
+        
+        console.log('✅ Logo uploaded successfully')
         
         const { data: { publicUrl } } = supabase.storage
           .from('logos')
           .getPublicUrl(fileName)
           
         logoUrl = publicUrl
+        console.log('🔗 Logo public URL generated:', logoUrl)
+      } else {
+        console.log('📄 No logo provided, proceeding without logo')
       }
 
       // Insert tool record
-      const { error: insertError } = await supabase
+      console.log('💾 Inserting tool record into database')
+      
+      const toolData = {
+        title: formData.name,
+        description: formData.description,
+        url: formData.websiteUrl,
+        launch_date: formData.launchDate,
+        is_paid: formData.isPaid,
+        logo_url: logoUrl,
+        user_id: user.id
+      }
+      
+      console.log('📋 Tool data to insert:', toolData)
+      
+      const { error: insertError, data: insertedData } = await supabase
         .from('tools')
-        .insert({
-          title: formData.name,
-          description: formData.description,
-          url: formData.websiteUrl,
-          launch_date: formData.launchDate,
-          is_paid: formData.isPaid,
-          logo_url: logoUrl,
-          user_id: user.id
-        })
+        .insert(toolData)
+        .select()
 
-      if (insertError) throw insertError
+      if (insertError) {
+        console.error('❌ Database insertion failed:', insertError)
+        throw new Error(`Database insertion failed: ${insertError.message}`)
+      }
+      
+      console.log('✅ Tool successfully inserted:', insertedData)
 
       toast({
         title: "Tool submitted successfully!",
-        description: "Your tool has been added to LaunchLeap.",
+        description: "Your tool has been added to Producshine.",
       })
 
-      // Reset form
+      console.log('🧹 Resetting form data')
+      
+      // Reset form and clear file input
       setFormData({
         name: "",
         description: "",
@@ -92,15 +130,38 @@ export function Submit() {
         logo: null,
       })
       
+      // Clear file input specifically
+      const fileInput = document.getElementById('logo') as HTMLInputElement
+      if (fileInput) {
+        fileInput.value = ''
+        console.log('🗑️ File input cleared')
+      }
+      
+      console.log('🎯 Navigating to discover page')
       navigate('/discover')
-    } catch (error) {
-      console.error('Error submitting tool:', error)
+      
+    } catch (error: any) {
+      console.error('💥 Submission error caught:', error)
+      
+      let errorMessage = "Failed to submit tool. Please try again."
+      
+      if (error.message) {
+        if (error.message.includes('Logo upload failed')) {
+          errorMessage = "Logo upload failed. Please check your file and try again."
+        } else if (error.message.includes('Database insertion failed')) {
+          errorMessage = "Failed to save your tool. Please check your information and try again."
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to submit tool. Please try again.",
+        title: "Submission Failed",
+        description: errorMessage,
         variant: "destructive"
       })
     } finally {
+      console.log('🏁 Setting submitting state to false')
       setSubmitting(false)
     }
   }
