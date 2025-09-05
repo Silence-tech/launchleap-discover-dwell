@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Upload, Globe, Calendar, DollarSign, Sparkles } from "lucide-react"
+import { Upload, Globe, Calendar as CalendarIcon, DollarSign, Sparkles } from "lucide-react"
+import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useAuth } from "@/hooks/useAuth"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
 
 export function Submit() {
   const { user, loading } = useAuth()
@@ -19,7 +23,7 @@ export function Submit() {
     name: "",
     description: "",
     websiteUrl: "",
-    launchDate: "",
+    launchDate: undefined as Date | undefined,
     isPaid: false,
     logo: null as File | null,
   })
@@ -93,7 +97,7 @@ export function Submit() {
         title: formData.name,
         description: formData.description,
         url: formData.websiteUrl,
-        launch_date: formData.launchDate,
+        launch_date: formData.launchDate ? format(formData.launchDate, 'yyyy-MM-dd') : null,
         is_paid: formData.isPaid,
         logo_url: logoUrl,
         user_id: user.id
@@ -125,7 +129,7 @@ export function Submit() {
         name: "",
         description: "",
         websiteUrl: "",
-        launchDate: "",
+        launchDate: undefined,
         isPaid: false,
         logo: null,
       })
@@ -191,6 +195,20 @@ export function Submit() {
       
       setFormData(prev => ({ ...prev, logo: file }))
     }
+  }
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let url = e.target.value.trim()
+    
+    // Auto-format URL if it doesn't start with protocol
+    if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+      // Check if it's a valid domain-like format
+      if (url.includes('.') || url.includes('localhost')) {
+        url = `https://${url}`
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, websiteUrl: url }))
   }
 
   if (loading) {
@@ -267,27 +285,50 @@ export function Submit() {
                 id="websiteUrl"
                 type="url"
                 value={formData.websiteUrl}
-                onChange={(e) => setFormData(prev => ({ ...prev, websiteUrl: e.target.value }))}
-                placeholder="https://your-tool.com"
+                onChange={handleUrlChange}
+                placeholder="your-tool.com (https:// will be added automatically)"
                 className="h-12 bg-glass/30 backdrop-blur-sm border-glass-border/40"
                 required
               />
+              <p className="text-sm text-glass-foreground/60 mt-1">
+                Just enter your domain - we'll add https:// automatically
+              </p>
             </div>
 
             {/* Launch Date */}
             <div>
-              <Label htmlFor="launchDate" className="text-lg font-semibold text-glass-foreground mb-2 block">
-                <Calendar className="w-5 h-5 inline mr-2" />
+              <Label className="text-lg font-semibold text-glass-foreground mb-2 block">
+                <CalendarIcon className="w-5 h-5 inline mr-2" />
                 Launch Date
               </Label>
-              <Input
-                id="launchDate"
-                type="date"
-                value={formData.launchDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, launchDate: e.target.value }))}
-                className="h-12 bg-glass/30 backdrop-blur-sm border-glass-border/40"
-                required
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full h-12 justify-start text-left font-normal bg-glass/30 backdrop-blur-sm border-glass-border/40 hover:bg-glass/40",
+                      !formData.launchDate && "text-glass-foreground/60"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.launchDate ? (
+                      format(formData.launchDate, "PPP")
+                    ) : (
+                      <span>Pick your launch date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-gradient-card backdrop-blur-xl border border-glass-border/30" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.launchDate}
+                    onSelect={(date) => setFormData(prev => ({ ...prev, launchDate: date }))}
+                    disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Logo Upload */}
