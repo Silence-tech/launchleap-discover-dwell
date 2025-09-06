@@ -12,6 +12,7 @@ interface Tool {
   id: number;
   title: string;
   description: string;
+  bio?: string; // Add bio field
   url: string | null;
   launch_date: string | null;
   is_paid: boolean | null;
@@ -28,75 +29,67 @@ export function Trending() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // useEffect(() => {
-  //   fetchTrendingTools()
-  // }, [user])
   useEffect(() => {
-    fetchTrendingTools();
-  }, []);
+    fetchTrendingTools()
+  }, []) // Empty dependency array - only run once on mount
 
   const fetchTrendingTools = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
+      
+      // Add timeout to prevent infinite loading
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+      
+      // Get tools ordered by upvotes count
+      const { data: toolsData, error } = await supabase
+        .from('tools')
+        .select('*')
+        .order('upvotes_count', { ascending: false })
+        .abortSignal(controller.signal)
 
-      // Fetch tools ordered by upvotes_count (trending)
-      const { data: toolsData, error: toolsError } = await supabase
-        .from("tools")
-        .select("*")
-        .order("upvotes_count", { ascending: false })
-        .order("created_at", { ascending: false });
+      clearTimeout(timeoutId)
 
-      if (toolsError) throw toolsError;
-
-      if (user) {
-        // Check which tools the user has upvoted
-        const toolIds = toolsData?.map((tool) => tool.id) || [];
-
-        if (toolIds.length > 0) {
-          const { data: upvotesData, error: upvotesError } = await supabase
-            .from("upvotes")
-            .select("tool_id")
-            .eq("user_id", user.id)
-            .in("tool_id", toolIds);
-
-          if (upvotesError) throw upvotesError;
-
-          const upvotedToolIds = new Set(
-            upvotesData?.map((upvote) => upvote.tool_id),
-          );
-
-          const toolsWithUpvoteStatus =
-            toolsData?.map((tool) => ({
-              ...tool,
-              upvotes_count: (tool as any).upvotes_count || 0,
-              isUpvoted: upvotedToolIds.has(tool.id),
-            })) || [];
-
-          setTools(toolsWithUpvoteStatus);
-        } else {
-          const toolsWithDefaults =
-            toolsData?.map((tool) => ({
-              ...tool,
-              upvotes_count: (tool as any).upvotes_count || 0,
-            })) || [];
-          setTools(toolsWithDefaults);
-        }
-      } else {
-        const toolsWithDefaults =
-          toolsData?.map((tool) => ({
-            ...tool,
-            upvotes_count: (tool as any).upvotes_count || 0,
-          })) || [];
-        setTools(toolsWithDefaults);
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
       }
+
+      // Check if user has upvoted any of these tools
+      let toolsWithUpvoteStatus = toolsData || []
+      
+      if (user && toolsWithUpvoteStatus.length > 0) {
+        const toolIds = toolsWithUpvoteStatus.map(tool => tool.id)
+        const { data: upvotesData } = await supabase
+          .from('upvotes')
+          .select('tool_id')
+          .eq('user_id', user.id)
+          .in('tool_id', toolIds)
+
+        const upvotedToolIds = new Set(upvotesData?.map(upvote => upvote.tool_id) || [])
+        
+        toolsWithUpvoteStatus = toolsWithUpvoteStatus.map(tool => ({
+          ...tool,
+          upvotes_count: tool.upvotes_count || 0,
+          isUpvoted: upvotedToolIds.has(tool.id)
+        }))
+      } else {
+        toolsWithUpvoteStatus = toolsWithUpvoteStatus.map(tool => ({
+          ...tool,
+          upvotes_count: tool.upvotes_count || 0
+        }))
+      }
+
+      setTools(toolsWithUpvoteStatus.sort((a, b) => b.upvotes_count - a.upvotes_count))
     } catch (error) {
-      console.error("Error fetching trending tools:", error);
-      setError("Failed to load trending tools. Please try again.");
+      console.error('Error fetching trending tools:', error)
+      setError('Failed to load trending tools')
+      setTools([]) // Ensure tools array is set even on error
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleUpvoteChange = (
     toolId: number,
@@ -230,7 +223,7 @@ export function Trending() {
                     </div>
 
                     <p className="text-glass-foreground/80 mb-4 line-clamp-2">
-                      {tool.description}
+                      {tool.bio || tool.description}
                     </p>
 
                     {/* Actions */}

@@ -12,6 +12,7 @@ interface Tool {
   id: number;
   title: string;
   description: string;
+  bio?: string; // Add bio field
   url: string | null;
   launch_date: string | null;
   is_paid: boolean | null;
@@ -27,73 +28,65 @@ export function Home() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // useEffect(() => {
-  //   fetchFeaturedTools();
-  // }, [user]);
   useEffect(() => {
-    fetchFeaturedTools();
-  }, []);
+    fetchFeaturedTools()
+  }, []) // Empty dependency array - only run once on mount
 
   const fetchFeaturedTools = async () => {
     try {
-      setLoading(true);
+      setLoading(true)
+      
+      // Fetch top 4 tools by upvotes with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-      // Fetch top 4 tools by upvotes for homepage
-      const { data: toolsData, error: toolsError } = await supabase
-        .from("tools")
-        .select("*")
-        .order("upvotes_count", { ascending: false })
-        .limit(4);
+      const { data: toolsData, error } = await supabase
+        .from('tools')
+        .select('*')
+        .order('upvotes_count', { ascending: false })
+        .limit(4)
+        .abortSignal(controller.signal)
 
-      if (toolsError) throw toolsError;
+      clearTimeout(timeoutId)
 
-      if (user) {
-        // Check which tools the user has upvoted
-        const toolIds = toolsData?.map((tool) => tool.id) || [];
-
-        if (toolIds.length > 0) {
-          const { data: upvotesData, error: upvotesError } = await supabase
-            .from("upvotes")
-            .select("tool_id")
-            .eq("user_id", user.id)
-            .in("tool_id", toolIds);
-
-          if (upvotesError) throw upvotesError;
-
-          const upvotedToolIds = new Set(
-            upvotesData?.map((upvote) => upvote.tool_id),
-          );
-
-          const toolsWithUpvoteStatus =
-            toolsData?.map((tool) => ({
-              ...tool,
-              upvotes_count: tool.upvotes_count || 0,
-              isUpvoted: upvotedToolIds.has(tool.id),
-            })) || [];
-
-          setTools(toolsWithUpvoteStatus);
-        } else {
-          const toolsWithDefaults =
-            toolsData?.map((tool) => ({
-              ...tool,
-              upvotes_count: tool.upvotes_count || 0,
-            })) || [];
-          setTools(toolsWithDefaults);
-        }
-      } else {
-        const toolsWithDefaults =
-          toolsData?.map((tool) => ({
-            ...tool,
-            upvotes_count: tool.upvotes_count || 0,
-          })) || [];
-        setTools(toolsWithDefaults);
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
       }
+
+      // Check if user has upvoted any of these tools
+      let toolsWithUpvoteStatus = toolsData || []
+      
+      if (user && toolsWithUpvoteStatus.length > 0) {
+        const toolIds = toolsWithUpvoteStatus.map(tool => tool.id)
+        const { data: upvotesData } = await supabase
+          .from('upvotes')
+          .select('tool_id')
+          .eq('user_id', user.id)
+          .in('tool_id', toolIds)
+
+        const upvotedToolIds = new Set(upvotesData?.map(upvote => upvote.tool_id) || [])
+        
+        toolsWithUpvoteStatus = toolsWithUpvoteStatus.map(tool => ({
+          ...tool,
+          upvotes_count: tool.upvotes_count || 0,
+          isUpvoted: upvotedToolIds.has(tool.id)
+        }))
+      } else {
+        toolsWithUpvoteStatus = toolsWithUpvoteStatus.map(tool => ({
+          ...tool,
+          upvotes_count: tool.upvotes_count || 0
+        }))
+      }
+
+      setTools(toolsWithUpvoteStatus)
     } catch (error) {
-      console.error("Error fetching featured tools:", error);
+      console.error('Error fetching featured tools:', error)
+      setTools([]) // Set empty array on error to prevent infinite loading
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleUpvoteChange = (
     toolId: number,
@@ -205,7 +198,7 @@ export function Home() {
                     tool={{
                       id: tool.id.toString(),
                       name: tool.title,
-                      description: tool.description,
+                      description: tool.bio || tool.description, // Use bio if available, fallback to description
                       logoUrl: tool.logo_url || "",
                       websiteUrl: tool.url || "",
                       launchDate: tool.launch_date || "",

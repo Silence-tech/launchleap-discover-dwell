@@ -21,7 +21,9 @@ export function Submit() {
   
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
+    bio: "",
+    fullDescription: "",
+    tags: "",
     websiteUrl: "",
     launchDate: undefined as Date | undefined,
     isPaid: false,
@@ -95,7 +97,10 @@ export function Submit() {
       
       const toolData = {
         title: formData.name,
-        description: formData.description,
+        description: formData.bio, // Keep for backwards compatibility
+        bio: formData.bio,
+        full_description: formData.fullDescription,
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
         url: formData.websiteUrl,
         launch_date: formData.launchDate ? format(formData.launchDate, 'yyyy-MM-dd') : null,
         is_paid: formData.isPaid,
@@ -127,7 +132,9 @@ export function Submit() {
       // Reset form and clear file input
       setFormData({
         name: "",
-        description: "",
+        bio: "",
+        fullDescription: "",
+        tags: "",
         websiteUrl: "",
         launchDate: undefined,
         isPaid: false,
@@ -260,19 +267,56 @@ export function Submit() {
               />
             </div>
 
-            {/* Description */}
+            {/* Bio */}
             <div>
-              <Label htmlFor="description" className="text-lg font-semibold text-glass-foreground mb-2 block">
-                Description
+              <Label htmlFor="bio" className="text-lg font-semibold text-glass-foreground mb-2 block">
+                Short Bio
               </Label>
               <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe what your tool does and why it's amazing..."
-                className="min-h-[120px] bg-glass/30 backdrop-blur-sm border-glass-border/40"
+                id="bio"
+                value={formData.bio}
+                onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                placeholder="A brief 2-3 line summary of your tool (max 200 characters)..."
+                className="min-h-[80px] bg-glass/30 backdrop-blur-sm border-glass-border/40"
+                maxLength={200}
                 required
               />
+              <p className="text-sm text-glass-foreground/60 mt-1">
+                {formData.bio.length}/200 characters
+              </p>
+            </div>
+
+            {/* Full Description */}
+            <div>
+              <Label htmlFor="fullDescription" className="text-lg font-semibold text-glass-foreground mb-2 block">
+                Full Description
+              </Label>
+              <Textarea
+                id="fullDescription"
+                value={formData.fullDescription}
+                onChange={(e) => setFormData(prev => ({ ...prev, fullDescription: e.target.value }))}
+                placeholder="Provide a detailed description of your tool, its features, benefits, and what makes it unique..."
+                className="min-h-[160px] bg-glass/30 backdrop-blur-sm border-glass-border/40"
+                required
+              />
+            </div>
+
+            {/* Tags */}
+            <div>
+              <Label htmlFor="tags" className="text-lg font-semibold text-glass-foreground mb-2 block">
+                Tags
+              </Label>
+              <Input
+                id="tags"
+                type="text"
+                value={formData.tags}
+                onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                placeholder="productivity, ai, automation, design (separate with commas)"
+                className="h-12 bg-glass/30 backdrop-blur-sm border-glass-border/40"
+              />
+              <p className="text-sm text-glass-foreground/60 mt-1">
+                Add relevant tags separated by commas to help users discover your tool
+              </p>
             </div>
 
             {/* Website URL */}

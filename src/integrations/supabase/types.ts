@@ -52,36 +52,45 @@ export type Database = {
       }
       tools: {
         Row: {
+          bio: string | null
           created_at: string
           description: string
+          full_description: string | null
           id: number
           is_paid: boolean | null
           launch_date: string | null
           logo_url: string | null
+          tags: string[] | null
           title: string
           upvotes_count: number | null
           url: string | null
           user_id: string | null
         }
         Insert: {
+          bio?: string | null
           created_at?: string
           description: string
+          full_description?: string | null
           id?: number
           is_paid?: boolean | null
           launch_date?: string | null
           logo_url?: string | null
+          tags?: string[] | null
           title: string
           upvotes_count?: number | null
           url?: string | null
           user_id?: string | null
         }
         Update: {
+          bio?: string | null
           created_at?: string
           description?: string
+          full_description?: string | null
           id?: number
           is_paid?: boolean | null
           launch_date?: string | null
           logo_url?: string | null
+          tags?: string[] | null
           title?: string
           upvotes_count?: number | null
           url?: string | null

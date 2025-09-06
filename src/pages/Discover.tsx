@@ -14,6 +14,7 @@ interface Tool {
   id: number;
   title: string;
   description: string;
+  bio?: string; // Add bio field
   url: string | null;
   launch_date: string | null;
   is_paid: boolean | null;
@@ -37,79 +38,71 @@ export function Discover() {
     { id: "featured", label: "Featured", icon: Star },
   ];
 
-  // useEffect(() => {
-  //   fetchTools()
-  // }, [user, selectedFilter])
   useEffect(() => {
-    fetchTools();
-  }, [selectedFilter]);
+    fetchTools()
+  }, [selectedFilter]) // Only depend on selectedFilter, not user
 
   const fetchTools = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
+      
+      // Add timeout to prevent infinite loading
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000) // 15 second timeout
+      
+      let query = supabase.from('tools').select('*')
+      
+      // Apply sorting based on filter
+      if (selectedFilter === 'newest') {
+        query = query.order('created_at', { ascending: false })
+      } else if (selectedFilter === 'featured') {
+        query = query.order('upvotes_count', { ascending: false })
+      }
+      
+      const { data: toolsData, error } = await query.abortSignal(controller.signal)
+      
+      clearTimeout(timeoutId)
 
-      // Fetch tools with different ordering based on filter
-      let query = supabase.from("tools").select("*");
-
-      if (selectedFilter === "newest") {
-        query = query.order("created_at", { ascending: false });
-      } else {
-        query = query.order("upvotes_count", { ascending: false });
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
       }
 
-      const { data: toolsData, error: toolsError } = await query;
+      // Check if user has upvoted any of these tools
+      let toolsWithUpvoteStatus = toolsData || []
+      
+      if (user && toolsWithUpvoteStatus.length > 0) {
+        const toolIds = toolsWithUpvoteStatus.map(tool => tool.id)
+        const { data: upvotesData } = await supabase
+          .from('upvotes')
+          .select('tool_id')
+          .eq('user_id', user.id)
+          .in('tool_id', toolIds)
 
-      if (toolsError) throw toolsError;
-
-      if (user) {
-        // Check which tools the user has upvoted
-        const toolIds = toolsData?.map((tool) => tool.id) || [];
-
-        if (toolIds.length > 0) {
-          const { data: upvotesData, error: upvotesError } = await supabase
-            .from("upvotes")
-            .select("tool_id")
-            .eq("user_id", user.id)
-            .in("tool_id", toolIds);
-
-          if (upvotesError) throw upvotesError;
-
-          const upvotedToolIds = new Set(
-            upvotesData?.map((upvote) => upvote.tool_id),
-          );
-
-          const toolsWithUpvoteStatus =
-            toolsData?.map((tool) => ({
-              ...tool,
-              upvotes_count: (tool as any).upvotes_count || 0,
-              isUpvoted: upvotedToolIds.has(tool.id),
-            })) || [];
-
-          setTools(toolsWithUpvoteStatus);
-        } else {
-          const toolsWithDefaults =
-            toolsData?.map((tool) => ({
-              ...tool,
-              upvotes_count: (tool as any).upvotes_count || 0,
-            })) || [];
-          setTools(toolsWithDefaults);
-        }
+        const upvotedToolIds = new Set(upvotesData?.map(upvote => upvote.tool_id) || [])
+        
+        toolsWithUpvoteStatus = toolsWithUpvoteStatus.map(tool => ({
+          ...tool,
+          upvotes_count: tool.upvotes_count || 0,
+          isUpvoted: upvotedToolIds.has(tool.id)
+        }))
       } else {
-        const toolsWithDefaults =
-          toolsData?.map((tool) => ({
-            ...tool,
-            upvotes_count: (tool as any).upvotes_count || 0,
-          })) || [];
-        setTools(toolsWithDefaults);
+        toolsWithUpvoteStatus = toolsWithUpvoteStatus.map(tool => ({
+          ...tool,
+          upvotes_count: tool.upvotes_count || 0
+        }))
       }
+
+      setTools(toolsWithUpvoteStatus)
     } catch (error) {
-      console.error("Error fetching tools:", error);
-      setError("Failed to load tools. Please try again.");
+      console.error('Error fetching tools:', error)
+      setError('Failed to load tools. Please try again.')
+      setTools([]) // Ensure tools array is set even on error
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleUpvoteChange = (
     toolId: number,
@@ -271,9 +264,9 @@ export function Discover() {
                   />
                 </div>
 
-                {/* Description */}
+                {/* Description - Use bio if available */}
                 <p className="text-glass-foreground/80 text-sm mb-4 line-clamp-2">
-                  {tool.description}
+                  {tool.bio || tool.description}
                 </p>
 
                 {/* Actions */}
