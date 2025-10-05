@@ -231,29 +231,29 @@ export function Submit() {
   }
 
   return (
-    <div className="min-h-screen py-12">
-      <div className="max-w-4xl mx-auto px-6">
+    <div className="min-h-screen py-6 sm:py-8 md:py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center space-x-2 bg-glass/20 backdrop-blur-xl border border-glass-border/30 rounded-full px-6 py-3 mb-6">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <span className="text-glass-foreground">Share Your Innovation</span>
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="inline-flex items-center space-x-2 bg-glass/20 backdrop-blur-xl border border-glass-border/30 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-4 sm:mb-6">
+            <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            <span className="text-sm sm:text-base text-glass-foreground">Share Your Innovation</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent px-4">
             Submit Your Tool
           </h1>
-          <p className="text-xl text-glass-foreground/80 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-glass-foreground/80 max-w-2xl mx-auto px-4">
             Join the community of innovators and showcase your creation to thousands of potential users.
           </p>
         </div>
 
         {/* Form */}
-        <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-8 shadow-glass">
-          <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-glass">
+          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
             {/* Tool Name */}
             <div>
-              <Label htmlFor="name" className="text-lg font-semibold text-glass-foreground mb-2 block">
+              <Label htmlFor="name" className="text-base sm:text-lg font-semibold text-glass-foreground mb-2 block">
                 Tool Name
               </Label>
               <Input
@@ -262,7 +262,7 @@ export function Submit() {
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter your tool's name"
-                className="h-12 bg-glass/30 backdrop-blur-sm border-glass-border/40"
+                className="h-10 sm:h-12 bg-glass/30 backdrop-blur-sm border-glass-border/40"
                 required
               />
             </div>
@@ -447,9 +447,9 @@ export function Submit() {
         </div>
 
         {/* Requirements Note */}
-        <div className="mt-8 p-6 bg-glass/10 backdrop-blur-sm border border-glass-border/20 rounded-2xl">
-          <h3 className="font-semibold text-glass-foreground mb-2">Submission Guidelines</h3>
-          <ul className="text-sm text-glass-foreground/70 space-y-1">
+        <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-glass/10 backdrop-blur-sm border border-glass-border/20 rounded-xl sm:rounded-2xl">
+          <h3 className="text-sm sm:text-base font-semibold text-glass-foreground mb-2">Submission Guidelines</h3>
+          <ul className="text-xs sm:text-sm text-glass-foreground/70 space-y-1">
             <li>• Your tool should be live and accessible</li>
             <li>• Provide a clear, descriptive name and description</li>
             <li>• Logo should be high-quality (PNG/JPG, max 5MB)</li>

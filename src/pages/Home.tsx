@@ -112,21 +112,21 @@ export function Home() {
         />
         <div className="absolute inset-0 bg-gradient-hero" />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-24">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center space-x-2 bg-glass/20 backdrop-blur-xl border border-glass-border/30 rounded-full px-6 py-3 mb-8 animate-float">
-              <Sparkles className="w-5 h-5 text-primary" />
+            <div className="inline-flex items-center space-x-2 bg-glass/20 backdrop-blur-xl border border-glass-border/30 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-6 sm:mb-8 animate-float text-sm sm:text-base">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               <span className="text-glass-foreground">
                 Discover Tomorrow's Tools Today
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent animate-fade-in">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent animate-fade-in px-4">
               Launch Your Ideas to New Heights
             </h1>
 
             <p
-              className="text-xl md:text-2xl text-glass-foreground/80 mb-12 leading-relaxed animate-fade-in"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-glass-foreground/80 mb-8 sm:mb-12 leading-relaxed animate-fade-in px-4"
               style={{ animationDelay: "0.2s" }}
             >
               Discover groundbreaking tools, share your creations, and connect
@@ -134,26 +134,26 @@ export function Home() {
             </p>
 
             <div
-              className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 animate-fade-in"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 animate-fade-in px-4"
               style={{ animationDelay: "0.4s" }}
             >
               <Button
                 variant="hero"
                 size="hero"
-                className="min-w-[200px]"
+                className="w-full sm:w-auto sm:min-w-[200px]"
                 asChild
               >
                 <Link to="/discover">
-                  <Zap className="w-6 h-6 mr-2" />
+                  <Zap className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                   Explore Tools
-                  <ArrowRight className="w-6 h-6 ml-2" />
+                  <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 ml-2" />
                 </Link>
               </Button>
 
               <Button
                 variant="glass"
                 size="lg"
-                className="min-w-[200px]"
+                className="w-full sm:w-auto sm:min-w-[200px]"
                 asChild
               >
                 <Link to="/submit">Submit Your Tool</Link>
@@ -164,8 +164,8 @@ export function Home() {
       </section>
 
       {/* Featured Tools Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-12 sm:py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
             <div className="inline-flex items-center space-x-2 bg-glass/10 backdrop-blur-sm border border-glass-border/20 rounded-full px-4 py-2 mb-4">
               <TrendingUp className="w-4 h-4 text-primary" />
@@ -182,7 +182,7 @@ export function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {loading ? (
               <div className="col-span-full flex justify-center py-12">
                 <LoadingSpinner size="lg" />
@@ -234,10 +234,10 @@ export function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-12 shadow-cosmic">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+      <section className="py-12 sm:py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 shadow-cosmic">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
               <div className="text-center">
                 <div className="text-4xl font-bold text-primary mb-2">500+</div>
                 <div className="text-glass-foreground/80">Tools Discovered</div>

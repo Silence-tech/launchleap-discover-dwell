@@ -1,129 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* LaunchLeap Design System - Glassmorphic & Cosmic Theme */
+:root {
+  /* Base Colors - Light Mode (Pastel & Dreamy) */
+  --background: 240 20% 98%;
+  --foreground: 240 20% 15%;
+  
+  /* Primary - Bright Cyan/Blue */
+  --primary: 200 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  
+  /* Secondary - Vibrant Purple */
+  --secondary: 280 70% 60%;
+  --secondary-foreground: 0 0% 100%;
+  
+  /* Accent - Electric Pink */
+  --accent: 330 85% 65%;
+  --accent-foreground: 0 0% 100%;
+  
+  /* Glassmorphic surface colors */
+  --glass: 240 30% 95%;
+  --glass-foreground: 240 20% 20%;
+  --glass-border: 240 20% 85%;
+  
+  /* UI Element colors */
+  --card: 0 0% 100%;
+  --card-foreground: 240 20% 15%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 20% 15%;
+  
+  --muted: 240 20% 96%;
+  --muted-foreground: 240 10% 45%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --border: 240 20% 90%;
+  --input: 240 20% 90%;
+  --ring: 200 100% 50%;
+  
+  /* Gradients */
+  --gradient-cosmic: linear-gradient(135deg, hsl(200, 100%, 60%), hsl(280, 70%, 65%), hsl(330, 85%, 70%));
+  --gradient-hero: linear-gradient(180deg, transparent 0%, hsl(240, 20%, 98%) 100%);
+  --gradient-card: linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(240, 30%, 98%) 100%);
+  
+  /* Shadows */
+  --shadow-cosmic: 0 20px 60px -15px hsl(200, 100%, 50%, 0.4);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  --shadow-glow: 0 0 30px hsl(200, 100%, 50%, 0.3);
+  
+  /* Sidebar specific colors */
+  --sidebar: 240 20% 98%;
+  --sidebar-foreground: 240 20% 20%;
+  --sidebar-border: 240 20% 90%;
+  
+  --radius: 0.75rem;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-@layer base {
-  :root {
-    /* Core Colors - Light Mode (Pastel & Dreamy) */
-    --background: 215 100% 98%;
-    --foreground: 240 15% 15%;
-
-    /* Glassmorphic surfaces */
-    --glass: 0 0% 100%;
-    --glass-border: 240 20% 90%;
-    --glass-foreground: 240 15% 15%;
-
-    /* Primary - Cosmic Blue */
-    --primary: 210 100% 60%;
-    --primary-glow: 195 100% 75%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Secondary - Mystic Purple */
-    --secondary: 280 90% 70%;
-    --secondary-glow: 290 85% 85%;
-    --secondary-foreground: 0 0% 100%;
-
-    /* Accent - Neon Cyan */
-    --accent: 180 100% 70%;
-    --accent-glow: 180 100% 85%;
-    --accent-foreground: 240 15% 15%;
-
-    /* Magical Gradients */
-    --gradient-cosmic: linear-gradient(135deg, hsl(280, 90%, 85%) 0%, hsl(210, 100%, 85%) 50%, hsl(180, 100%, 85%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(280, 60%, 92%) 0%, hsl(210, 80%, 95%) 30%, hsl(180, 70%, 97%) 100%);
-    --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
-
-    /* Shadows & Glows */
-    --shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.37);
-    --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.3);
-    --shadow-cosmic: 0 20px 60px rgba(180, 100, 255, 0.2);
-
-    /* UI Elements */
-    --border: 240 20% 90%;
-    --input: 240 10% 96%;
-    --ring: 210 100% 60%;
-    --radius: 1rem;
-
-    /* Sidebar */
-    --sidebar-background: 255 255 255;
-    --sidebar-foreground: 240 15% 15%;
-    --sidebar-border: 255 255 255;
-
-    /* Animations */
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  .dark {
-    /* Core Colors - Dark Mode (Deep Space & Neon) */
-    --background: 240 15% 8%;
-    --foreground: 0 0% 95%;
-
-    /* Glassmorphic surfaces */
-    --glass: 240 15% 12%;
-    --glass-border: 240 30% 25%;
-    --glass-foreground: 0 0% 95%;
-
-    /* Primary - Electric Cyan */
-    --primary: 180 100% 60%;
-    --primary-glow: 180 100% 80%;
-    --primary-foreground: 240 15% 8%;
-
-    /* Secondary - Neon Magenta */
-    --secondary: 320 90% 65%;
-    --secondary-glow: 320 90% 80%;
-    --secondary-foreground: 240 15% 8%;
-
-    /* Accent - Cosmic Blue */
-    --accent: 210 100% 70%;
-    --accent-glow: 210 100% 85%;
-    --accent-foreground: 240 15% 8%;
-
-    /* Dark Magical Gradients */
-    --gradient-cosmic: linear-gradient(135deg, hsl(240, 30%, 12%) 0%, hsl(240, 20%, 15%) 30%, hsl(240, 25%, 18%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(320, 40%, 10%) 0%, hsl(240, 30%, 12%) 50%, hsl(180, 30%, 15%) 100%);
-    --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-
-    /* Dark Shadows & Glows */
-    --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.8);
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.4);
-    --shadow-cosmic: 0 20px 60px rgba(180, 100, 255, 0.3);
-
-    /* UI Elements */
-    --border: 240 30% 25%;
-    --input: 240 15% 15%;
-    --ring: 180 100% 60%;
-
-    /* Sidebar */
-    --sidebar-background: 240 15% 12%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-border: 240 30% 25%;
-  }
+.dark {
+  /* Base Colors - Dark Mode (Deep Space & Neon) */
+  --background: 230 25% 8%;
+  --foreground: 0 0% 98%;
+  
+  /* Primary - Neon Cyan */
+  --primary: 180 100% 55%;
+  --primary-foreground: 230 25% 10%;
+  
+  /* Secondary - Neon Purple */
+  --secondary: 270 100% 70%;
+  --secondary-foreground: 0 0% 100%;
+  
+  /* Accent - Hot Pink */
+  --accent: 330 100% 65%;
+  --accent-foreground: 0 0% 100%;
+  
+  /* Glassmorphic surface colors */
+  --glass: 230 25% 12%;
+  --glass-foreground: 0 0% 95%;
+  --glass-border: 230 25% 20%;
+  
+  /* UI Element colors */
+  --card: 230 25% 10%;
+  --card-foreground: 0 0% 98%;
+  
+  --popover: 230 25% 12%;
+  --popover-foreground: 0 0% 98%;
+  
+  --muted: 230 25% 18%;
+  --muted-foreground: 0 0% 70%;
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --border: 230 25% 20%;
+  --input: 230 25% 18%;
+  --ring: 180 100% 55%;
+  
+  /* Gradients */
+  --gradient-cosmic: linear-gradient(135deg, hsl(180, 100%, 40%), hsl(270, 100%, 60%), hsl(330, 100%, 55%));
+  --gradient-hero: linear-gradient(180deg, transparent 0%, hsl(230, 25%, 8%) 100%);
+  --gradient-card: linear-gradient(135deg, hsl(230, 25%, 12%) 0%, hsl(230, 25%, 10%) 100%);
+  
+  /* Shadows */
+  --shadow-cosmic: 0 20px 60px -15px hsl(180, 100%, 55%, 0.5);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 40px hsl(180, 100%, 55%, 0.4);
+  
+  /* Sidebar specific colors */
+  --sidebar: 230 25% 10%;
+  --sidebar-foreground: 0 0% 95%;
+  --sidebar-border: 230 25% 18%;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
 }
 
 @layer utilities {
-  /* Glassmorphic utility classes */
   .glass-panel {
-    @apply bg-gradient-card backdrop-blur-xl border border-glass-border/30 shadow-glass;
+    @apply backdrop-blur-xl bg-gradient-card border border-glass-border/30 shadow-glass;
   }
   
   .glass-button {
-    @apply bg-glass/20 backdrop-blur-xl border border-glass-border/30 hover:bg-glass/40 hover:shadow-glass;
+    @apply backdrop-blur-sm bg-glass/20 hover:bg-glass/30 border border-glass-border/30 transition-all;
   }
   
-  /* Text utilities */
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -132,12 +143,29 @@
   }
   
   .text-gradient {
-    @apply bg-gradient-to-r from-foreground via-primary to-secondary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent;
   }
   
-  /* Animation utilities */
-  .animate-delay-100 { animation-delay: 0.1s; }
-  .animate-delay-200 { animation-delay: 0.2s; }
-  .animate-delay-300 { animation-delay: 0.3s; }
-  .animate-delay-500 { animation-delay: 0.5s; }
+  /* Animation delays */
+  .animate-delay-200 {
+    animation-delay: 0.2s;
+  }
+  
+  .animate-delay-400 {
+    animation-delay: 0.4s;
+  }
+  
+  .animate-delay-600 {
+    animation-delay: 0.6s;
+  }
+
+  /* Hide scrollbar for mobile filter buttons */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

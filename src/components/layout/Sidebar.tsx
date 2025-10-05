@@ -23,7 +23,12 @@ const navigation = [
   { name: "Profile", href: "/profile", icon: User },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const { user } = useAuth();
 
@@ -31,9 +36,27 @@ export function Sidebar() {
     setTheme(theme === "light" ? "dark" : "light");
   };
 
+  const handleNavClick = () => {
+    // Close mobile menu when navigation item is clicked
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-80 backdrop-blur-xl bg-sidebar border-r border-sidebar-border shadow-glass">
-      <div className="flex flex-col h-full">
+    <>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      <aside className={`fixed left-0 top-0 z-40 h-screen w-80 backdrop-blur-xl bg-sidebar border-r border-sidebar-border shadow-glass transition-transform duration-300 md:translate-x-0 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      } md:block`}>
+        <div className="flex flex-col h-full">
         {/* Logo & Auth */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-sidebar-border/50">
           <div className="flex items-center space-x-3">
@@ -78,6 +101,7 @@ export function Sidebar() {
               <NavLink
                 key={item.name}
                 to={item.href}
+                onClick={handleNavClick}
                 className={({ isActive }) => {
                   // Fix highlighting for trending tab
                   const isTrendingActive =
@@ -131,6 +155,7 @@ export function Sidebar() {
           {user ? (
             <NavLink
               to="/settings"
+              onClick={handleNavClick}
               className="group flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sidebar-foreground hover:bg-glass hover:text-primary hover:shadow-glass transition-all duration-300"
             >
               <Settings className="w-5 h-5" />
@@ -144,6 +169,7 @@ export function Sidebar() {
           )}
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
