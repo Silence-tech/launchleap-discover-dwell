@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { Search, Filter, Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ToolCardSkeleton } from "@/components/ToolCardSkeleton";
+import { EmptyState } from "@/components/EmptyState";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { UpvoteButton } from "@/components/UpvoteButton";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
@@ -124,21 +126,16 @@ export function Discover() {
       tool.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <Button onClick={fetchTools}>Try Again</Button>
-        </div>
+        <EmptyState
+          icon={Search}
+          title="Failed to load tools"
+          description={error}
+          actionLabel="Try Again"
+          onAction={fetchTools}
+        />
       </div>
     );
   }
@@ -185,7 +182,7 @@ export function Discover() {
                   variant={selectedFilter === filter.id ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedFilter(filter.id)}
-                  className="rounded-full"
+                  className="rounded-full min-h-[44px] touch-manipulation active:scale-95"
                 >
                   <filter.icon className="w-4 h-4 mr-1" />
                   {filter.label}
@@ -204,14 +201,20 @@ export function Discover() {
 
         {/* Tools Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredTools.map((tool, index) => (
+          {loading ? (
+            <>
+              {[...Array(6)].map((_, i) => (
+                <ToolCardSkeleton key={i} />
+              ))}
+            </>
+          ) : filteredTools.map((tool, index) => (
             <div
               key={tool.id}
-              className="group relative bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl p-6 shadow-glass hover:shadow-cosmic transition-all duration-500 animate-glass-morph hover:scale-[1.02] animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="group relative bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl p-6 shadow-glass hover:shadow-cosmic active:scale-[0.98] transition-all duration-500 animate-glass-morph hover:scale-[1.02] animate-fade-in touch-manipulation"
+              style={{ animationDelay: `${index * 0.05}s` }}
             >
               {/* Floating glow effect */}
-              <div className="absolute inset-0 bg-gradient-cosmic opacity-0 group-hover:opacity-20 rounded-2xl transition-opacity duration-500" />
+              <div className="absolute inset-0 bg-gradient-cosmic opacity-0 group-hover:opacity-20 group-active:opacity-20 rounded-2xl transition-opacity duration-500" />
 
               <div className="relative z-10">
                 {/* Header */}
@@ -275,12 +278,12 @@ export function Discover() {
                     variant="glass"
                     size="sm"
                     onClick={() => tool.url && window.open(tool.url, "_blank")}
-                    className="flex-1"
+                    className="flex-1 min-h-[44px] active:scale-95 touch-manipulation"
                   >
                     <ExternalLink className="w-4 h-4 mr-1" />
                     Visit
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="min-h-[44px] active:scale-95 touch-manipulation">
                     <Link to={`/tool/${tool.id}`} className="flex items-center">
                       Learn More
                     </Link>
@@ -301,23 +304,20 @@ export function Discover() {
         )}
 
         {/* No Results */}
-        {filteredTools.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 bg-glass/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
-              <Search className="w-10 h-10 text-glass-foreground/40" />
-            </div>
-            <h3 className="text-2xl font-semibold text-glass-foreground mb-2">
-              No tools found
-            </h3>
-            <p className="text-glass-foreground/60 mb-8">
-              Try adjusting your search terms or filters
-            </p>
-            <Button variant="outline" onClick={() => setSearchQuery("")}>
-              Clear Search
-            </Button>
+        {!loading && filteredTools.length === 0 && (
+          <div className="col-span-full">
+            <EmptyState
+              icon={Search}
+              title="No tools found"
+              description="Try adjusting your search terms or filters"
+              actionLabel="Clear Search"
+              onAction={() => setSearchQuery("")}
+            />
           </div>
         )}
       </div>
+      
+      <ScrollToTop />
     </div>
   );
 }

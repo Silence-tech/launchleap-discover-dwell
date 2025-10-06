@@ -3,10 +3,11 @@ import { useParams, useNavigate } from "react-router-dom"
 import { ArrowLeft, ExternalLink, Heart, Share2, Twitter, Linkedin, Copy, Calendar, DollarSign, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ScrollToTop } from "@/components/ScrollToTop"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
-import { LoadingSpinner } from "@/components/LoadingSpinner"
 
 interface Tool {
   id: number
@@ -176,8 +177,20 @@ export function ToolDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
+      <div className="min-h-screen py-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <Skeleton className="h-10 w-24 mb-8" />
+          <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-6 sm:p-8 mb-8">
+            <div className="flex flex-col md:flex-row gap-6">
+              <Skeleton className="w-20 h-20 rounded-2xl" />
+              <div className="flex-1 space-y-4">
+                <Skeleton className="h-10 w-3/4" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-1/2" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -199,20 +212,20 @@ export function ToolDetail() {
   }
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="max-w-6xl mx-auto px-6">
+    <div className="min-h-screen py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         {/* Back Button */}
         <Button 
           onClick={handleBack}
           variant="ghost" 
-          className="mb-8 hover:bg-glass/20"
+          className="mb-6 sm:mb-8 hover:bg-glass/20 min-h-[44px] active:scale-95 touch-manipulation"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
 
         {/* Header */}
-        <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-8 mb-8 shadow-glass">
+        <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 shadow-glass animate-fade-in">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Logo */}
             <div className="flex-shrink-0">
@@ -258,21 +271,21 @@ export function ToolDetail() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <Button
                     onClick={handleUpvote}
                     variant={tool.isUpvoted ? "default" : "outline"}
                     disabled={isUpvoting}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 min-h-[44px] w-full sm:w-auto active:scale-95 touch-manipulation"
                   >
-                    <Heart className={`w-4 h-4 ${tool.isUpvoted ? 'fill-current' : ''}`} />
+                    <Heart className={`w-4 h-4 ${tool.isUpvoted ? 'fill-current animate-scale-in' : ''}`} />
                     {tool.upvotes_count} {tool.isUpvoted ? 'Upvoted' : 'Upvote'}
                   </Button>
                   
                   <Button
                     onClick={() => window.open(tool.url, '_blank')}
                     variant="hero"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 min-h-[44px] w-full sm:w-auto active:scale-95 touch-manipulation"
                   >
                     <ExternalLink className="w-4 h-4" />
                     Visit Tool
@@ -286,11 +299,11 @@ export function ToolDetail() {
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2">
-            <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-8 shadow-glass">
-              <h2 className="text-2xl font-bold text-glass-foreground mb-6">About {tool.title}</h2>
-              <div className="prose prose-lg max-w-none">
-                <p className="text-glass-foreground/80 leading-relaxed whitespace-pre-wrap">
+          <div className="lg:col-span-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-glass">
+              <h2 className="text-xl sm:text-2xl font-bold text-glass-foreground mb-4 sm:mb-6">About {tool.title}</h2>
+              <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none">
+                <p className="text-sm sm:text-base text-glass-foreground/80 leading-relaxed whitespace-pre-wrap">
                   {tool.full_description}
                 </p>
               </div>
@@ -298,16 +311,17 @@ export function ToolDetail() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Share */}
-            <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-6 shadow-glass">
-              <h3 className="text-lg font-semibold text-glass-foreground mb-4">Share this tool</h3>
+            <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-glass animate-fade-in" style={{ animationDelay: "0.2s" }}>
+              <h3 className="text-base sm:text-lg font-semibold text-glass-foreground mb-3 sm:mb-4">Share this tool</h3>
               <div className="flex gap-2">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => handleShare('twitter')}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px] active:scale-95 touch-manipulation"
+                  aria-label="Share on Twitter"
                 >
                   <Twitter className="w-4 h-4" />
                 </Button>
@@ -315,7 +329,8 @@ export function ToolDetail() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleShare('linkedin')}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px] active:scale-95 touch-manipulation"
+                  aria-label="Share on LinkedIn"
                 >
                   <Linkedin className="w-4 h-4" />
                 </Button>
@@ -323,7 +338,8 @@ export function ToolDetail() {
                   size="sm"
                   variant="outline"
                   onClick={() => handleShare('copy')}
-                  className="flex-1"
+                  className="flex-1 min-h-[44px] active:scale-95 touch-manipulation"
+                  aria-label="Copy link"
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -332,11 +348,11 @@ export function ToolDetail() {
 
             {/* Tags */}
             {tool.tags && tool.tags.length > 0 && (
-              <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-6 shadow-glass">
-                <h3 className="text-lg font-semibold text-glass-foreground mb-4">Tags</h3>
+              <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-glass animate-fade-in" style={{ animationDelay: "0.3s" }}>
+                <h3 className="text-base sm:text-lg font-semibold text-glass-foreground mb-3 sm:mb-4">Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {tool.tags.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="bg-glass/30 backdrop-blur-sm">
+                    <Badge key={index} variant="secondary" className="bg-glass/30 backdrop-blur-sm text-xs sm:text-sm">
                       {tag}
                     </Badge>
                   ))}
@@ -345,16 +361,16 @@ export function ToolDetail() {
             )}
 
             {/* Stats */}
-            <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-3xl p-6 shadow-glass">
-              <h3 className="text-lg font-semibold text-glass-foreground mb-4">Stats</h3>
+            <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-glass animate-fade-in" style={{ animationDelay: "0.4s" }}>
+              <h3 className="text-base sm:text-lg font-semibold text-glass-foreground mb-3 sm:mb-4">Stats</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-glass-foreground/70">Total Upvotes</span>
-                  <span className="font-semibold text-glass-foreground">{tool.upvotes_count}</span>
+                  <span className="text-sm sm:text-base text-glass-foreground/70">Total Upvotes</span>
+                  <span className="text-sm sm:text-base font-semibold text-glass-foreground">{tool.upvotes_count}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-glass-foreground/70">Pricing</span>
-                  <Badge variant={tool.is_paid ? "destructive" : "default"}>
+                  <span className="text-sm sm:text-base text-glass-foreground/70">Pricing</span>
+                  <Badge variant={tool.is_paid ? "destructive" : "default"} className="text-xs sm:text-sm">
                     {tool.is_paid ? "Paid" : "Free"}
                   </Badge>
                 </div>
@@ -362,6 +378,8 @@ export function ToolDetail() {
             </div>
           </div>
         </div>
+        
+        <ScrollToTop />
       </div>
     </div>
   )

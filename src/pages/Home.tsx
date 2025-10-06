@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { ArrowRight, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToolCard } from "@/components/ToolCard";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ToolCardSkeleton } from "@/components/ToolCardSkeleton";
+import { TrendingCarousel } from "@/components/TrendingCarousel";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -107,10 +109,11 @@ export function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 animate-cosmic-pulse"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
         <div className="absolute inset-0 bg-gradient-hero" />
+        <div className="absolute inset-0 bg-gradient-cosmic opacity-10 animate-float" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-24">
           <div className="text-center max-w-4xl mx-auto">
@@ -140,7 +143,7 @@ export function Home() {
               <Button
                 variant="hero"
                 size="hero"
-                className="w-full sm:w-auto sm:min-w-[200px]"
+                className="w-full sm:w-auto sm:min-w-[200px] active:scale-95 touch-manipulation"
                 asChild
               >
                 <Link to="/discover">
@@ -153,7 +156,7 @@ export function Home() {
               <Button
                 variant="glass"
                 size="lg"
-                className="w-full sm:w-auto sm:min-w-[200px]"
+                className="w-full sm:w-auto sm:min-w-[200px] active:scale-95 touch-manipulation"
                 asChild
               >
                 <Link to="/submit">Submit Your Tool</Link>
@@ -163,30 +166,39 @@ export function Home() {
         </div>
       </section>
 
+      {/* Trending Carousel Section */}
+      <section className="py-12 sm:py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <TrendingCarousel />
+        </div>
+      </section>
+
       {/* Featured Tools Section */}
       <section className="py-12 sm:py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center space-x-2 bg-glass/10 backdrop-blur-sm border border-glass-border/20 rounded-full px-4 py-2 mb-4">
+          <div className="text-center mb-10 sm:mb-16">
+            <div className="inline-flex items-center space-x-2 bg-glass/10 backdrop-blur-sm border border-glass-border/20 rounded-full px-4 py-2 mb-4 animate-float">
               <TrendingUp className="w-4 h-4 text-primary" />
               <span className="text-sm text-glass-foreground/80">
-                Trending This Week
+                Top Picks This Week
               </span>
             </div>
 
-            <h2 className="text-4xl font-bold text-glass-foreground mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-glass-foreground mb-4">
               Featured Discoveries
             </h2>
-            <p className="text-xl text-glass-foreground/60 max-w-2xl mx-auto">
+            <p className="text-base sm:text-xl text-glass-foreground/60 max-w-2xl mx-auto px-4">
               Handpicked tools that are making waves in the tech community
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {loading ? (
-              <div className="col-span-full flex justify-center py-12">
-                <LoadingSpinner size="lg" />
-              </div>
+              <>
+                {[...Array(4)].map((_, i) => (
+                  <ToolCardSkeleton key={i} />
+                ))}
+              </>
             ) : (
               tools.map((tool, index) => (
                 <div
@@ -198,7 +210,7 @@ export function Home() {
                     tool={{
                       id: tool.id.toString(),
                       name: tool.title,
-                      description: tool.bio || tool.description, // Use bio if available, fallback to description
+                      description: tool.bio || tool.description,
                       logoUrl: tool.logo_url || "",
                       websiteUrl: tool.url || "",
                       launchDate: tool.launch_date || "",
@@ -223,7 +235,7 @@ export function Home() {
           </div>
 
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg" asChild>
+            <Button variant="outline" size="lg" asChild className="active:scale-95 touch-manipulation">
               <Link to="/discover">
                 View All Tools
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -233,24 +245,26 @@ export function Home() {
         </div>
       </section>
 
+      <ScrollToTop />
+
       {/* Stats Section */}
       <section className="py-12 sm:py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 shadow-cosmic">
+          <div className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 shadow-cosmic animate-fade-in">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">500+</div>
-                <div className="text-glass-foreground/80">Tools Discovered</div>
+              <div className="text-center animate-fade-in" style={{ animationDelay: "0.1s" }}>
+                <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-2 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">500+</div>
+                <div className="text-sm sm:text-base text-glass-foreground/80">Tools Discovered</div>
               </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-secondary mb-2">
+              <div className="text-center animate-fade-in" style={{ animationDelay: "0.2s" }}>
+                <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-secondary mb-2 bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
                   10K+
                 </div>
-                <div className="text-glass-foreground/80">Active Users</div>
+                <div className="text-sm sm:text-base text-glass-foreground/80">Active Users</div>
               </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-accent mb-2">50+</div>
-                <div className="text-glass-foreground/80">Daily Launches</div>
+              <div className="text-center animate-fade-in" style={{ animationDelay: "0.3s" }}>
+                <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-accent mb-2 bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">50+</div>
+                <div className="text-sm sm:text-base text-glass-foreground/80">Daily Launches</div>
               </div>
             </div>
           </div>

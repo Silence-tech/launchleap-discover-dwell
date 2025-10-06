@@ -81,9 +81,9 @@ export function ToolCard({ tool, onUpvote }: ToolCardProps) {
   }
 
   return (
-    <div className="group relative bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl p-4 sm:p-6 shadow-glass hover:shadow-cosmic transition-all duration-500 animate-glass-morph hover:scale-[1.02]">
+    <div className="group relative bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-2xl p-4 sm:p-6 shadow-glass hover:shadow-cosmic active:scale-[0.98] transition-all duration-500 animate-glass-morph hover:scale-[1.02] touch-manipulation">
       {/* Floating glow effect */}
-      <div className="absolute inset-0 bg-gradient-cosmic opacity-0 group-hover:opacity-20 rounded-2xl transition-opacity duration-500" />
+      <div className="absolute inset-0 bg-gradient-cosmic opacity-0 group-hover:opacity-20 group-active:opacity-20 rounded-2xl transition-opacity duration-500" />
       
       <div className="relative z-10">
         {/* Header */}
@@ -124,13 +124,14 @@ export function ToolCard({ tool, onUpvote }: ToolCardProps) {
             size="icon"
             onClick={handleUpvote}
             disabled={isLoading}
-            className={`rounded-xl transition-all duration-200 flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 ${
+            className={`rounded-xl transition-all duration-200 flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12 active:scale-95 touch-manipulation ${
               isUpvoted 
-                ? 'text-red-500 bg-red-50/10 hover:text-red-600 hover:bg-red-50/20' 
-                : 'text-glass-foreground/60 hover:text-red-500 hover:bg-red-50/10'
+                ? 'text-red-500 bg-red-50/10 hover:text-red-600 hover:bg-red-50/20 active:bg-red-50/30' 
+                : 'text-glass-foreground/60 hover:text-red-500 hover:bg-red-50/10 active:bg-red-50/20'
             }`}
+            aria-label={isUpvoted ? "Remove upvote" : "Upvote tool"}
           >
-            <Heart className={`w-4 h-4 sm:w-5 sm:h-5 transition-all duration-200 ${isUpvoted ? 'fill-current' : ''}`} />
+            <Heart className={`w-5 h-5 sm:w-6 sm:h-6 transition-all duration-200 ${isUpvoted ? 'fill-current animate-scale-in' : ''}`} />
           </Button>
         </div>
 
@@ -145,12 +146,12 @@ export function ToolCard({ tool, onUpvote }: ToolCardProps) {
             variant="glass"
             size="sm"
             onClick={() => window.open(tool.websiteUrl, '_blank')}
-            className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+            className="flex-1 h-10 sm:h-11 text-xs sm:text-sm active:scale-95 touch-manipulation"
           >
-            <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+            <ExternalLink className="w-4 h-4 sm:w-4 sm:h-4 mr-1" />
             Visit
           </Button>
-          <Button variant="outline" size="sm" asChild className="h-8 sm:h-9 text-xs sm:text-sm">
+          <Button variant="outline" size="sm" asChild className="h-10 sm:h-11 text-xs sm:text-sm active:scale-95 touch-manipulation">
             <Link to={`/tool/${tool.id}`} className="flex items-center">
               Learn More
             </Link>

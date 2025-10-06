@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { TrendingUp, ExternalLink, Calendar, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ToolCardSkeleton } from "@/components/ToolCardSkeleton";
+import { EmptyState } from "@/components/EmptyState";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { UpvoteButton } from "@/components/UpvoteButton";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -108,21 +110,16 @@ export function Trending() {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <Button onClick={fetchTrendingTools}>Try Again</Button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <EmptyState
+          icon={TrendingUp}
+          title="Failed to load trending tools"
+          description={error}
+          actionLabel="Try Again"
+          onAction={fetchTrendingTools}
+        />
       </div>
     );
   }
@@ -144,22 +141,27 @@ export function Trending() {
         </div>
 
         {/* Tools List */}
-        {tools.length === 0 ? (
-          <div className="text-center py-12 sm:py-20">
-            <TrendingUp className="w-12 h-12 sm:w-16 sm:h-16 text-glass-foreground/40 mx-auto mb-3 sm:mb-4" />
-            <h3 className="text-xl sm:text-2xl font-semibold text-glass-foreground mb-2">
-              No trending tools yet
-            </h3>
-            <p className="text-sm sm:text-base text-glass-foreground/60">
-              Be the first to discover and upvote amazing tools!
-            </p>
+        {loading ? (
+          <div className="space-y-3 sm:space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <ToolCardSkeleton key={i} />
+            ))}
           </div>
+        ) : tools.length === 0 ? (
+          <EmptyState
+            icon={TrendingUp}
+            title="No trending tools yet"
+            description="Be the first to discover and upvote amazing tools!"
+            actionLabel="Discover Tools"
+            onAction={() => window.location.href = '/discover'}
+          />
         ) : (
           <div className="space-y-3 sm:space-y-4">
             {tools.map((tool, index) => (
               <div
                 key={tool.id}
-                className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-glass hover:shadow-cosmic transition-all duration-300"
+                className="bg-gradient-card backdrop-blur-xl border border-glass-border/30 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-glass hover:shadow-cosmic active:scale-[0.98] transition-all duration-300 animate-fade-in touch-manipulation"
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <div className="flex items-start space-x-3 sm:space-x-4">
                   {/* Rank */}
@@ -236,12 +238,12 @@ export function Trending() {
                         onClick={() =>
                           tool.url && window.open(tool.url, "_blank")
                         }
-                        className="flex-1 sm:flex-initial h-8 sm:h-9 text-xs sm:text-sm"
+                        className="flex-1 sm:flex-initial h-10 sm:h-11 text-xs sm:text-sm active:scale-95 touch-manipulation"
                       >
                         <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                         Visit
                       </Button>
-                      <Button variant="outline" size="sm" className="h-8 sm:h-9 text-xs sm:text-sm">
+                      <Button variant="outline" size="sm" className="h-10 sm:h-11 text-xs sm:text-sm active:scale-95 touch-manipulation">
                         <Link
                           to={`/tool/${tool.id}`}
                           className="flex items-center"
@@ -256,6 +258,8 @@ export function Trending() {
             ))}
           </div>
         )}
+        
+        <ScrollToTop />
       </div>
     </div>
   );
